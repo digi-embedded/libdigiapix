@@ -1,0 +1,13 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libdigiapix
+Description: Digi APIX library
+Version: 1.0
+
+Requires.private: libsoc
+Libs: -L${libdir} -ldigiapix
+Libs.private: -lsoc
+Cflags: -I${includedir}/libdigiapix -I${includedir}
