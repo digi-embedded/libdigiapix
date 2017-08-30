@@ -22,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "_common.h"
 #include "_log.h"
 #include "gpio.h"
 
@@ -81,16 +82,10 @@ gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_
 	if (check_mode(mode) != EXIT_SUCCESS)
 		return NULL;
 
-	switch (request_mode) {
-	case REQUEST_SHARED:
-	case REQUEST_GREEDY:
-	case REQUEST_WEAK:
-		break;
-	default:
+	if (check_request_mode(request_mode) != EXIT_SUCCESS) {
 		request_mode = REQUEST_SHARED;
 		log_info("%s: Invalid request mode, setting to 'REQUEST_SHARED'",
 			 __func__);
-		break;
 	}
 
 	log_debug("%s: Requesting GPIO %d [mode '%s' (%d), request mode: %d]",
@@ -132,6 +127,48 @@ gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_
 	}
 
 	return new_gpio;
+}
+
+gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode)
+{
+	int kernel_number;
+	gpio_t *new_gpio = NULL;
+
+	if (check_mode(mode) != EXIT_SUCCESS)
+		return NULL;
+
+	if (check_request_mode(request_mode) != EXIT_SUCCESS) {
+		request_mode = REQUEST_SHARED;
+		log_info("%s: Invalid request mode, setting to 'REQUEST_SHARED'",
+				__func__);
+	}
+
+	log_debug("%s: Requesting GPIO '%s' [mode '%s' (%d), request mode: %d]",
+			__func__, gpio_alias, gpio_mode_strings[mode],
+			mode, request_mode);
+
+	kernel_number = gpio_get_kernel_number(gpio_alias);
+	if (kernel_number == -1) {
+		log_error("%s: Invalid GPIO alias, '%s'", __func__, gpio_alias);
+		return NULL;
+	}
+
+	new_gpio = gpio_request(kernel_number, mode, request_mode);
+	if (new_gpio != NULL) {
+		gpio_t init_gpio = {gpio_alias, kernel_number, new_gpio->_data};
+
+		memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
+	}
+
+	return new_gpio;
+}
+
+int gpio_get_kernel_number(const char * const gpio_alias)
+{
+	if (config_check_alias(gpio_alias) != EXIT_SUCCESS)
+		return -1;
+
+	return config_get_gpio_kernel_number(gpio_alias);
 }
 
 int gpio_free(gpio_t *gpio)

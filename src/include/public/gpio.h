@@ -100,6 +100,29 @@ typedef int (*gpio_interrupt_cb_t)(void *arg);
 gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode);
 
 /**
+ * gpio_request_by_alias() - Request a GPIO to use using its alias name
+ *
+ * @gpio_alias:		The alias name of the GPIO to request.
+ * @mode:		The desired GPIO working mode (gpio_mode_t).
+ * @request_mode:	Request mode for opening the GPIO (request_mode_t).
+ *
+ * This function returns a gpio_t pointer. Memory for the struct is obtained
+ * with 'malloc' and must be freed with 'gpio_free()'.
+ *
+ * Return: A pointer to gpio_t on success, NULL on error.
+ */
+gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode);
+
+/**
+ * gpio_get_kernel_number() - Retrieve the GPIO Linux ID number of a given alias
+ *
+ * @gpio_alias:	The alias name of the GPIO.
+ *
+ * Return: The kernel number associated to the alias, -1 on error.
+ */
+int gpio_get_kernel_number(const char * const gpio_alias);
+
+/**
  * gpio_free() - Free a previously requested GPIO
  *
  * @gpio:	A pointer to the requested GPIO to free.
