@@ -47,6 +47,24 @@ int config_check_alias(const char * const alias);
 int config_get_gpio_kernel_number(const char * const alias);
 
 /**
+ * config_get_pwm_chip_number() - Find the chip PWM number of a given PWM alias
+ *
+ * @alias: The PWM alias.
+ *
+ * Return: The chip number, -1 on error.
+ */
+int config_get_pwm_chip_number(const char * const alias);
+
+/**
+ * config_get_pwm_channel_number() - Find the channel PWM number of a given PWM alias
+ *
+ * @alias: The PWM alias.
+ *
+ * Return: The PWM channel, -1 on error.
+ */
+int config_get_pwm_channel_number(const char * const alias);
+
+/**
  * check_request_mode() - Verify that the given request mode is valid
  *
  * @request_mode:	The mode to check.

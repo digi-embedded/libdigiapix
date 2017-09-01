@@ -30,8 +30,53 @@ static void __attribute__ ((destructor(101))) digiapix_fini(void);
 
 static int config_load(void);
 static void config_free(void);
+static int config_get_pwm_item(const char * const alias, int index);
 
 static board_config *config;
+
+int config_check_alias(const char * const alias)
+{
+	if (alias == NULL || strlen(alias) == 0) {
+		log_error("%s: Invalid alias, it cannot be %s", __func__,
+				alias == NULL ? "NULL" : "empty");
+		return EXIT_FAILURE;
+	}
+
+	if (config == NULL) {
+		log_error("%s: Unable get requested alias ('%s')",
+				__func__, alias);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int config_get_gpio_kernel_number(const char * const alias)
+{
+	return libsoc_board_gpio_id(config, alias);
+}
+
+int config_get_pwm_chip_number(const char * const alias)
+{
+	return config_get_pwm_item(alias, 0);
+}
+
+int config_get_pwm_channel_number(const char * const alias)
+{
+	return config_get_pwm_item(alias, 1);
+}
+
+int check_request_mode(request_mode_t request_mode)
+{
+	switch (request_mode) {
+	case REQUEST_SHARED:
+	case REQUEST_GREEDY:
+	case REQUEST_WEAK:
+		return EXIT_SUCCESS;
+	default:
+		return EXIT_FAILURE;
+	}
+}
 
 /**
  * digiapix_init() - Initializes the library
@@ -88,36 +133,39 @@ static void config_free(void)
 	}
 }
 
-int config_check_alias(const char * const alias)
+/**
+ * config_get_pwm_item() - Return the index in the string "chip,channel" string
+ *
+ * @alias: The PWM alias.
+ * @index: 0 for chip, 1 for channel
+ *
+ * Return: The selected item, or -1 on error.
+ */
+static int config_get_pwm_item(const char * const alias, int index)
 {
-	if (alias == NULL || strlen(alias) == 0) {
-		log_error("%s: Invalid alias, it cannot be %s", __func__,
-				alias == NULL ? "NULL" : "empty");
-		return EXIT_FAILURE;
+	char *array = NULL;
+	char *token = NULL;
+	int item = -1;
+
+	const char * value = conffile_get(config->conf, "PWM", alias, NULL);
+	if (value == NULL)
+		return -1;
+
+	array = strdup(value);
+	if (array == NULL)
+		return -1;
+
+	while (index > -1) {
+		token = strtok(array, ",");
+		if (token == NULL)
+			break;
+		index--;
 	}
 
-	if (config == NULL) {
-		log_error("%s: Unable get requested alias ('%s')",
-				__func__, alias);
-		return EXIT_FAILURE;
-	}
+	if (token != NULL)
+		item = (unsigned int)atoi(token);
 
-	return EXIT_SUCCESS;
-}
+	free(array);
 
-int config_get_gpio_kernel_number(const char * const alias)
-{
-	return libsoc_board_gpio_id(config, alias);
-}
-
-int check_request_mode(request_mode_t request_mode)
-{
-	switch (request_mode) {
-	case REQUEST_SHARED:
-	case REQUEST_GREEDY:
-	case REQUEST_WEAK:
-		return EXIT_SUCCESS;
-	default:
-		return EXIT_FAILURE;
-	}
+	return item;
 }
