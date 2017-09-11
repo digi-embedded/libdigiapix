@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "_common.h"
 #include "_log.h"
@@ -60,6 +61,11 @@ static const char * const gpio_value_strings[] = {
 	M(GPIO_HIGH)
 };
 #undef M
+
+static const char * const gpio_active_mode_strings[] = {
+	"0",
+	"1"
+};
 
 static const char * const gpio_edge_strings[] = {
 	"rising",
@@ -379,6 +385,95 @@ gpio_value_t gpio_get_value(gpio_t *gpio)
 	}
 
 	return level;
+}
+
+int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t active_mode)
+{
+	int fd;
+	char path[BUFF_SIZE];
+
+	if (check_gpio(gpio) != EXIT_SUCCESS)
+		return EXIT_FAILURE;
+
+	switch (active_mode) {
+	case GPIO_ACTIVE_HIGH:
+	case GPIO_ACTIVE_LOW:
+		break;
+	default:
+		log_error("%s: Invalid GPIO active_low value, %d. \
+		          Mode must be '%s' or '%s'",
+			  __func__, active_mode,
+			  gpio_active_mode_strings[GPIO_ACTIVE_HIGH],
+			  gpio_active_mode_strings[GPIO_ACTIVE_LOW]);
+		return EXIT_FAILURE;
+	}
+
+	log_debug("%s: Setting active_low for GPIO %d, value: %d", __func__,
+		  gpio->kernel_number, active_mode);
+
+	sprintf(path, "/sys/class/gpio/gpio%d/active_low", gpio->kernel_number);
+
+	fd = open(path, O_SYNC | O_WRONLY);
+
+	if (fd < 0) {
+		log_error("%s: Unable to set GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		return EXIT_FAILURE;
+	}
+
+	if (write(fd, gpio_active_mode_strings[active_mode], BUFF_SIZE) < 0) {
+		log_error("%s: Unable to change GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		close(fd);
+		return EXIT_FAILURE;
+	}
+
+	if (close(fd) < 0) {
+		log_error("%s: Unable to set GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio)
+{
+	char tmp_str[BUFF_SIZE], level[2];
+	int fd;
+
+	if (check_gpio(gpio) != EXIT_SUCCESS)
+		return GPIO_ACTIVE_MODE_ERROR;
+
+	log_debug("%s: Getting active_low attribute of GPIO %d", __func__,
+		  gpio->kernel_number);
+
+	sprintf(tmp_str, "/sys/class/gpio/gpio%d/active_low", gpio->kernel_number);
+
+	fd = open(tmp_str, O_RDONLY);
+
+	if (fd < 0) {
+		log_error("%s: Unable to get GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		return GPIO_ACTIVE_MODE_ERROR;
+	}
+
+	lseek(fd, 0, SEEK_SET);
+
+	if (read(fd, level, 2) != 2) {
+		log_error("%s: Unable to get GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		close(fd);
+		return GPIO_ACTIVE_MODE_ERROR;
+	}
+
+	if (close(fd) < 0) {
+		log_error("%s: Unable to get GPIO %d active mode",
+			  __func__, gpio->kernel_number);
+		return GPIO_ACTIVE_MODE_ERROR;
+	}
+
+	return level[0] == '0' ? GPIO_ACTIVE_HIGH : GPIO_ACTIVE_LOW;
 }
 
 gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout)

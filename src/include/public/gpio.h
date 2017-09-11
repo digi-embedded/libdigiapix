@@ -57,6 +57,15 @@ typedef enum {
 } gpio_value_t;
 
 /**
+ * gpio_active_mode_t - Defined values for GPIO active modes
+ */
+typedef enum {
+	GPIO_ACTIVE_MODE_ERROR = -1,
+	GPIO_ACTIVE_HIGH,
+	GPIO_ACTIVE_LOW,
+} gpio_active_mode_t;
+
+/**
  * gpio_irq_error_t - Defined error values for blocked GPIO interrupts
  */
 typedef enum {
@@ -200,6 +209,27 @@ int gpio_set_value(gpio_t *gpio, gpio_value_t value);
  * on error.
  */
 gpio_value_t gpio_get_value(gpio_t *gpio);
+
+/**
+ * gpio_set_active_mode() - Set the given GPIO active mode
+ *
+ * @gpio:	A requested GPIO to set its active mode.
+ * @value:	New GPIO active_low value (gpio_active_mode_t): GPIO_ACTIVE_HIGH or
+ *              GPIO_ACTIVE_LOW.
+ *
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
+ */
+int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t value);
+
+/**
+ * gpio_get_active_mode() - Get the given GPIO active mode
+ *
+ * @gpio:	A requested GPIO to read its active mode.
+ *
+ * Return: The GPIO active mode, GPIO_ACTIVE_HIGH, GPIO_ACTIVE_LOW or
+ *         GPIO_ACTIVE_MODE_ERROR on error.
+ */
+gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio);
 
 /**
  * gpio_wait_interrupt() - Wait for an interrupt on the given GPIO to occur
