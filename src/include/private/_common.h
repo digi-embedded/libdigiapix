@@ -65,6 +65,24 @@ int config_get_pwm_chip_number(const char * const alias);
 int config_get_pwm_channel_number(const char * const alias);
 
 /**
+ * config_get_spi_device_number() - Find the SPI device number of a given alias
+ *
+ * @alias: The SPI alias.
+ *
+ * Return: The SPI device number, -1 on error.
+ */
+int config_get_spi_device_number(const char * const alias);
+
+/**
+ * config_get_spi_slave_number() - Find the SPI slave number of a given alias
+ *
+ * @alias: The SPI alias.
+ *
+ * Return: The SPI slave number, -1 on error.
+ */
+int config_get_spi_slave_number(const char * const alias);
+
+/**
  * check_request_mode() - Verify that the given request mode is valid
  *
  * @request_mode:	The mode to check.

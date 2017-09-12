@@ -30,7 +30,7 @@ static void __attribute__ ((destructor(101))) digiapix_fini(void);
 
 static int config_load(void);
 static void config_free(void);
-static int config_get_pwm_item(const char * const alias, int index);
+static int config_get_csv_integer(const char * const group, const char * const alias, int index);
 
 static board_config *config;
 
@@ -58,12 +58,22 @@ int config_get_gpio_kernel_number(const char * const alias)
 
 int config_get_pwm_chip_number(const char * const alias)
 {
-	return config_get_pwm_item(alias, 0);
+	return config_get_csv_integer("PWM", alias, 0);
 }
 
 int config_get_pwm_channel_number(const char * const alias)
 {
-	return config_get_pwm_item(alias, 1);
+	return config_get_csv_integer("PWM", alias, 1);
+}
+
+int config_get_spi_device_number(const char * const alias)
+{
+	return config_get_csv_integer("SPI", alias, 0);
+}
+
+int config_get_spi_slave_number(const char * const alias)
+{
+	return config_get_csv_integer("SPI", alias, 1);
 }
 
 int check_request_mode(request_mode_t request_mode)
@@ -134,20 +144,22 @@ static void config_free(void)
 }
 
 /**
- * config_get_pwm_item() - Return the index in the string "chip,channel" string
+ * config_get_csv_integer() - Return the comma-separated integer for the given
+ *                            index in the requested configuration value
  *
- * @alias: The PWM alias.
- * @index: 0 for chip, 1 for channel
+ * @group: The configuration group.
+ * @alias: The alias of the comma-separated configuration value.
+ * @index: The index of the comma-separated value to get
  *
  * Return: The selected item, or -1 on error.
  */
-static int config_get_pwm_item(const char * const alias, int index)
+static int config_get_csv_integer(const char * const group, const char * const alias, int index)
 {
 	char *array = NULL;
 	char *token = NULL;
 	int item = -1;
 
-	const char * value = conffile_get(config->conf, "PWM", alias, NULL);
+	const char * value = conffile_get(config->conf, group, alias, NULL);
 	if (value == NULL)
 		return -1;
 
