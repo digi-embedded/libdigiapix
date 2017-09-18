@@ -307,7 +307,7 @@ pwm_config_error_t pwm_set_duty_cycle_percentage(pwm_t *pwm, unsigned int percen
 	if (current_period == -1)
 		return PWM_CONFIG_ERROR;
 
-	return pwm_set_duty_cycle(pwm,(current_period / 100 * percentage) + 0.5);
+	return pwm_set_duty_cycle(pwm, (current_period / 100.0 * percentage) + 0.5);
 }
 
 int pwm_get_duty_percentage(pwm_t *pwm)
@@ -321,7 +321,7 @@ int pwm_get_duty_percentage(pwm_t *pwm)
 	duty_cycle = pwm_get_duty_cycle(pwm);
 	period = pwm_get_period(pwm);
 	if (duty_cycle > 0 && period > 0)
-		return (duty_cycle / period * 100 ) + 0.5;
+		return (duty_cycle * 1.0 / period * 100) + 0.5;
 
 	return -1;
 }
