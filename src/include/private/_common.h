@@ -83,6 +83,15 @@ int config_get_spi_device_number(const char * const alias);
 int config_get_spi_slave_number(const char * const alias);
 
 /**
+ * config_get_i2c_bus() - Find the I2C Linux bus id of an alias
+ *
+ * @alias:	The I2C alias.
+ *
+ * Return: The kernel number, -1 on error.
+ */
+int config_get_i2c_bus(const char * const alias);
+
+/**
  * check_request_mode() - Verify that the given request mode is valid
  *
  * @request_mode:	The mode to check.

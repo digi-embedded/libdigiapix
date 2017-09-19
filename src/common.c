@@ -76,6 +76,11 @@ int config_get_spi_slave_number(const char * const alias)
 	return config_get_csv_integer("SPI", alias, 1);
 }
 
+int config_get_i2c_bus(const char * const alias)
+{
+	return libsoc_board_i2c_id(config, alias);
+}
+
 int check_request_mode(request_mode_t request_mode)
 {
 	switch (request_mode) {
