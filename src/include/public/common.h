@@ -25,11 +25,11 @@ extern "C" {
 #include <syslog.h>
 
 /**
- * set_log_level() - Set the new log level
+ * ldx_set_log_level() - Set the new log level
  *
  * @level:	New log level.
  */
-#define set_log_level(level)			\
+#define ldx_set_log_level(level)			\
 	setlogmask(LOG_UPTO(level))
 
 /**

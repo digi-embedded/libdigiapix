@@ -90,58 +90,58 @@ typedef struct {
 /**
  * Callback function type used as GPIO interrupt handler
  *
- * See 'gpio_start_wait_interrupt()'.
+ * See 'ldx_gpio_start_wait_interrupt()'.
  */
-typedef int (*gpio_interrupt_cb_t)(void *arg);
+typedef int (*ldx_gpio_interrupt_cb_t)(void *arg);
 
 /**
- * gpio_request() - Request a GPIO to use
+ * ldx_gpio_request() - Request a GPIO to use
  *
  * @kernel_number:	The Linux ID number of the GPIO to request.
  * @mode:		The desired GPIO request mode (gpio_mode_t).
  * @request_mode:	Request mode for opening the GPIO (request_mode_t).
  *
  * This function returns a gpio_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'gpio_free()'.
+ * with 'malloc' and must be freed with 'ldx_gpio_free()'.
  *
  * Return: A pointer to gpio_t on success, NULL on error.
  */
-gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode);
+gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode);
 
 /**
- * gpio_request_by_alias() - Request a GPIO to use using its alias name
+ * ldx_gpio_request_by_alias() - Request a GPIO to use using its alias name
  *
  * @gpio_alias:		The alias name of the GPIO to request.
  * @mode:		The desired GPIO working mode (gpio_mode_t).
  * @request_mode:	Request mode for opening the GPIO (request_mode_t).
  *
  * This function returns a gpio_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'gpio_free()'.
+ * with 'malloc' and must be freed with 'ldx_gpio_free()'.
  *
  * Return: A pointer to gpio_t on success, NULL on error.
  */
-gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode);
+gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode);
 
 /**
- * gpio_get_kernel_number() - Retrieve the GPIO Linux ID number of a given alias
+ * ldx_gpio_get_kernel_number() - Retrieve the GPIO Linux ID number of a given alias
  *
  * @gpio_alias:	The alias name of the GPIO.
  *
  * Return: The kernel number associated to the alias, -1 on error.
  */
-int gpio_get_kernel_number(const char * const gpio_alias);
+int ldx_gpio_get_kernel_number(const char * const gpio_alias);
 
 /**
- * gpio_free() - Free a previously requested GPIO
+ * ldx_gpio_free() - Free a previously requested GPIO
  *
  * @gpio:	A pointer to the requested GPIO to free.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_free(gpio_t *gpio);
+int ldx_gpio_free(gpio_t *gpio);
 
 /**
- * gpio_set_mode() - Change the given GPIO working mode
+ * ldx_gpio_set_mode() - Change the given GPIO working mode
  *
  * @gpio:	A requested GPIO to set its working mode.
  * @mode:	Working mode to configure (gpio_mode_t).
@@ -154,10 +154,10 @@ int gpio_free(gpio_t *gpio);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode);
+int ldx_gpio_set_mode(gpio_t *gpio, gpio_mode_t mode);
 
 /**
- * gpio_get_mode() - Get the given GPIO working mode
+ * ldx_gpio_get_mode() - Get the given GPIO working mode
  *
  * @gpio:	A requested GPIO to get its working mode.
  *
@@ -171,10 +171,10 @@ int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode);
  *	   GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING, GPIO_IRQ_EDGE_BOTH),
  *	   GPIO_MODE_ERROR if it cannot be retrieved.
  */
-gpio_mode_t gpio_get_mode(gpio_t *gpio);
+gpio_mode_t ldx_gpio_get_mode(gpio_t *gpio);
 
 /**
- * gpio_set_value() - Set the given GPIO value to high or low
+ * ldx_gpio_set_value() - Set the given GPIO value to high or low
  *
  * @gpio:	A requested GPIO to set its value.
  * @value:	New GPIO value (gpio_value_t): GPIO_LOW or GPIO_HIGH.
@@ -189,10 +189,10 @@ gpio_mode_t gpio_get_mode(gpio_t *gpio);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_set_value(gpio_t *gpio, gpio_value_t value);
+int ldx_gpio_set_value(gpio_t *gpio, gpio_value_t value);
 
 /**
- * gpio_get_value() - Get the given GPIO value
+ * ldx_gpio_get_value() - Get the given GPIO value
  *
  * @gpio:	A requested GPIO to read its value.
  *
@@ -208,10 +208,10 @@ int gpio_set_value(gpio_t *gpio, gpio_value_t value);
  * Return: The GPIO value (gpio_value_t) GPIO_LOW or GPIO_HIGH, GPIO_VALUE_ERROR
  *	   on error.
  */
-gpio_value_t gpio_get_value(gpio_t *gpio);
+gpio_value_t ldx_gpio_get_value(gpio_t *gpio);
 
 /**
- * gpio_set_active_mode() - Set the given GPIO active mode
+ * ldx_gpio_set_active_mode() - Set the given GPIO active mode
  *
  * @gpio:	A requested GPIO to set its active mode.
  * @value:	New GPIO active_low value (gpio_active_mode_t): GPIO_ACTIVE_HIGH
@@ -219,20 +219,20 @@ gpio_value_t gpio_get_value(gpio_t *gpio);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t value);
+int ldx_gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t value);
 
 /**
- * gpio_get_active_mode() - Get the given GPIO active mode
+ * ldx_gpio_get_active_mode() - Get the given GPIO active mode
  *
  * @gpio:	A requested GPIO to read its active mode.
  *
  * Return: The GPIO active mode, GPIO_ACTIVE_HIGH, GPIO_ACTIVE_LOW or
  *	   GPIO_ACTIVE_MODE_ERROR on error.
  */
-gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio);
+gpio_active_mode_t ldx_gpio_get_active_mode(gpio_t *gpio);
 
 /**
- * gpio_wait_interrupt() - Wait for an interrupt on the given GPIO to occur
+ * ldx_gpio_wait_interrupt() - Wait for an interrupt on the given GPIO to occur
  *
  * @gpio:	A requested GPIO to wait for interrupt on.
  * @timeout:	The maximum number of milliseconds to wait for an interrupt, -1
@@ -244,17 +244,17 @@ gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio);
  * The GPIO must be configured as GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING,
  * or GPIO_IRQ_EDGE_BOTH, otherwise GPIO_IRQ_ERROR will be returned.
  *
- * To use a non-blocking interrupt mechanism see 'gpio_start_wait_interrupt()'
- * and 'gpio_stop_wait_interrupt()'.
+ * To use a non-blocking interrupt mechanism see
+ * 'ldx_gpio_start_wait_interrupt()' and 'ldx_gpio_stop_wait_interrupt()'.
  *
  * Return: GPIO_IRQ_ERROR_NONE when the interrupt is captured,
  *	   GPIO_IRQ_ERROR_TIMEOUT if no interrupt is triggered in the specified
  *	   timeout, or GPIO_IRQ_ERROR on error.
  */
-gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout);
+gpio_irq_error_t ldx_gpio_wait_interrupt(gpio_t *gpio, int timeout);
 
 /**
- * gpio_start_wait_interrupt() - Start interrupt detection on the given GPIO
+ * ldx_gpio_start_wait_interrupt() - Start interrupt detection on the given GPIO
  *
  * @gpio:		A pointer to a requested GPIO to set an interrupt
  *			handler.
@@ -268,7 +268,7 @@ gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout);
  * executed when an interrupt is triggered. After that it continues waiting for
  * new interrupts.
  *
- * To stop listening for interrupts use 'gpio_stop_wait_interrupt()'.
+ * To stop listening for interrupts use 'ldx_gpio_stop_wait_interrupt()'.
  *
  * This function creates a new thread waiting for GPIO interrupts. This thread
  * executes the callback function when one is triggered.
@@ -279,19 +279,19 @@ gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout);
  * The GPIO must be configured as GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING,
  * or GPIO_IRQ_EDGE_BOTH, otherwise EXIT_FAILURE will be returned.
  *
- * To use a blocking interrupt mechanism see 'gpio_wait_interrupt()'.
+ * To use a blocking interrupt mechanism see 'ldx_gpio_wait_interrupt()'.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_start_wait_interrupt(gpio_t *gpio, const gpio_interrupt_cb_t interrupt_cb, void *arg);
+int ldx_gpio_start_wait_interrupt(gpio_t *gpio, const ldx_gpio_interrupt_cb_t interrupt_cb, void *arg);
 
 /**
- * gpio_stop_wait_interrupt() - Remove the interrupt detection on the given GPIO
+ * ldx_gpio_stop_wait_interrupt() - Remove the interrupt detection on the given GPIO
  *
  * @gpio:	A pointer to a requested GPIO to stop an interrupt handler.
  *
  * This function stops the previously set interrupt handler on a GPIO using
- * 'gpio_start_wait_interrupt()'.
+ * 'ldx_gpio_start_wait_interrupt()'.
  *
  * This uses the 'pthread_cancel()' function, so it may cancel mid way through
  * your interrupt handler function.
@@ -301,7 +301,7 @@ int gpio_start_wait_interrupt(gpio_t *gpio, const gpio_interrupt_cb_t interrupt_
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int gpio_stop_wait_interrupt(gpio_t *gpio);
+int ldx_gpio_stop_wait_interrupt(gpio_t *gpio);
 
 #ifdef __cplusplus
 }

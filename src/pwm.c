@@ -44,8 +44,8 @@ static const char * const pwm_enable_strings[] = {
 
 static int check_valid_pwm(pwm_t *pwm);
 
-pwm_t *pwm_request(unsigned int pwm_chip, unsigned int pwm_channel,
-		   request_mode_t request_mode)
+pwm_t *ldx_pwm_request(unsigned int pwm_chip, unsigned int pwm_channel,
+		       request_mode_t request_mode)
 {
 	libsoc_pwm_t *_pwm = NULL;
 	pwm_t *new_pwm = NULL;
@@ -79,7 +79,7 @@ pwm_t *pwm_request(unsigned int pwm_chip, unsigned int pwm_channel,
 	return new_pwm;
 }
 
-pwm_t *pwm_request_by_alias(char const * const pwm_alias, request_mode_t request_mode)
+pwm_t *ldx_pwm_request_by_alias(char const * const pwm_alias, request_mode_t request_mode)
 {
 	int pwm_chip_number;
 	int pwm_channel_number;
@@ -88,19 +88,19 @@ pwm_t *pwm_request_by_alias(char const * const pwm_alias, request_mode_t request
 	log_debug("%s: Requesting PWM '%s' [request mode: %d]",
 		  __func__, pwm_alias, request_mode);
 
-	pwm_chip_number = pwm_get_chip(pwm_alias);
+	pwm_chip_number = ldx_pwm_get_chip(pwm_alias);
 	if (pwm_chip_number == -1) {
 		log_error("%s: Invalid PWM alias, '%s'", __func__, pwm_alias);
 		return NULL;
 	}
 
-	pwm_channel_number = pwm_get_channel(pwm_alias);
+	pwm_channel_number = ldx_pwm_get_channel(pwm_alias);
 	if (pwm_channel_number == -1) {
 		log_error("%s: Invalid PWM alias, '%s'", __func__, pwm_alias);
 		return NULL;
 	}
 
-	new_pwm = pwm_request(pwm_chip_number, pwm_channel_number, request_mode);
+	new_pwm = ldx_pwm_request(pwm_chip_number, pwm_channel_number, request_mode);
 	if (new_pwm != NULL) {
 		pwm_t init_pwm = {pwm_alias, pwm_chip_number, pwm_channel_number,
 				((pwm_t *)new_pwm)->_data};
@@ -110,7 +110,7 @@ pwm_t *pwm_request_by_alias(char const * const pwm_alias, request_mode_t request
 	return new_pwm;
 }
 
-int pwm_get_chip(char const * const pwm_alias)
+int ldx_pwm_get_chip(char const * const pwm_alias)
 {
 	if (config_check_alias(pwm_alias) != EXIT_SUCCESS)
 		return -1;
@@ -118,7 +118,7 @@ int pwm_get_chip(char const * const pwm_alias)
 	return config_get_pwm_chip_number(pwm_alias);
 }
 
-int pwm_get_channel(char const * const pwm_alias)
+int ldx_pwm_get_channel(char const * const pwm_alias)
 {
 	if (config_check_alias(pwm_alias) != EXIT_SUCCESS)
 		return -1;
@@ -126,7 +126,7 @@ int pwm_get_channel(char const * const pwm_alias)
 	return config_get_pwm_channel_number(pwm_alias);
 }
 
-int pwm_get_number_of_channels(unsigned int pwm_chip)
+int ldx_pwm_get_number_of_channels(unsigned int pwm_chip)
 {
 	int fd;
 	char path[BUFF_SIZE];
@@ -150,17 +150,17 @@ int pwm_get_number_of_channels(unsigned int pwm_chip)
 	return atoi(channels);
 }
 
-int pwm_get_number_of_channels_by_alias(char const * const pwm_alias)
+int ldx_pwm_get_number_of_channels_by_alias(char const * const pwm_alias)
 {
 	int chip = config_get_pwm_chip_number(pwm_alias);
 
 	if (chip < 0)
 		return -1;
 
-	return pwm_get_number_of_channels(chip);
+	return ldx_pwm_get_number_of_channels(chip);
 }
 
-int pwm_free(pwm_t *pwm)
+int ldx_pwm_free(pwm_t *pwm)
 {
 	int ret = EXIT_SUCCESS;
 
@@ -177,7 +177,7 @@ int pwm_free(pwm_t *pwm)
 	return ret;
 }
 
-pwm_config_error_t pwm_set_period(pwm_t *pwm, unsigned int period)
+pwm_config_error_t ldx_pwm_set_period(pwm_t *pwm, unsigned int period)
 {
 	pwm_config_error_t ret = PWM_CONFIG_ERROR;
 	int duty_cycle = -1;
@@ -191,7 +191,7 @@ pwm_config_error_t pwm_set_period(pwm_t *pwm, unsigned int period)
 		return PWM_CONFIG_ERROR_INVALID;
 	}
 
-	duty_cycle = pwm_get_duty_cycle(pwm);
+	duty_cycle = ldx_pwm_get_duty_cycle(pwm);
 	if (duty_cycle > -1 && (int)period < duty_cycle) {
 		log_error("%s: The duty cycle (%d ns) is greater than period (%d ns) "
 			  "that you are setting. Change the duty cycle "
@@ -216,7 +216,7 @@ pwm_config_error_t pwm_set_period(pwm_t *pwm, unsigned int period)
 	return ret;
 }
 
-int pwm_get_period(pwm_t *pwm)
+int ldx_pwm_get_period(pwm_t *pwm)
 {
 	int period;
 
@@ -234,7 +234,7 @@ int pwm_get_period(pwm_t *pwm)
 	return period;
 }
 
-pwm_config_error_t pwm_set_freq(pwm_t *pwm, unsigned long freq_hz)
+pwm_config_error_t ldx_pwm_set_freq(pwm_t *pwm, unsigned long freq_hz)
 {
 	unsigned int period;
 
@@ -247,28 +247,28 @@ pwm_config_error_t pwm_set_freq(pwm_t *pwm, unsigned long freq_hz)
 	log_debug("%s: Setting frequency of PWM %d:%d: %lu Hz", __func__,
 		  pwm->chip, pwm->channel, freq_hz);
 
-	return pwm_set_period(pwm, period);
+	return ldx_pwm_set_period(pwm, period);
 }
 
-long pwm_get_freq(pwm_t *pwm)
+long ldx_pwm_get_freq(pwm_t *pwm)
 {
 	int period;
 
 	log_debug("%s: Getting frequency of PWM %d:%d", __func__, pwm->chip, pwm->channel);
 
-	period = pwm_get_period(pwm);
+	period = ldx_pwm_get_period(pwm);
 
 	return (period > 0) ? (SECS_TO_NANOSECS / period) + 0.5 : -1;
 }
 
-pwm_config_error_t pwm_set_duty_cycle(pwm_t *pwm, unsigned int duty_cycle)
+pwm_config_error_t ldx_pwm_set_duty_cycle(pwm_t *pwm, unsigned int duty_cycle)
 {
 	int current_period;
 
 	log_debug("%s: Setting duty cycle of PWM %d:%d: %d ns", __func__,
 		  pwm->chip, pwm->channel, duty_cycle);
 
-	current_period = pwm_get_period(pwm);
+	current_period = ldx_pwm_get_period(pwm);
 	if (current_period > -1 && duty_cycle > (unsigned int)current_period) {
 		log_error("%s: Invalid duty cycle value, %d ns. Duty cycle must"
 			  " be less than the current period (%d ns)",
@@ -280,7 +280,7 @@ pwm_config_error_t pwm_set_duty_cycle(pwm_t *pwm, unsigned int duty_cycle)
 			PWM_CONFIG_ERROR_NONE : PWM_CONFIG_ERROR;
 }
 
-int pwm_get_duty_cycle(pwm_t *pwm)
+int ldx_pwm_get_duty_cycle(pwm_t *pwm)
 {
 	if (check_valid_pwm(pwm) != EXIT_SUCCESS)
 		return -1;
@@ -290,7 +290,7 @@ int pwm_get_duty_cycle(pwm_t *pwm)
 	return libsoc_pwm_get_duty_cycle(pwm->_data);
 }
 
-pwm_config_error_t pwm_set_duty_cycle_percentage(pwm_t *pwm, unsigned int percentage)
+pwm_config_error_t ldx_pwm_set_duty_cycle_percentage(pwm_t *pwm, unsigned int percentage)
 {
 	int current_period;
 
@@ -303,14 +303,14 @@ pwm_config_error_t pwm_set_duty_cycle_percentage(pwm_t *pwm, unsigned int percen
 	log_debug("%s: Setting duty cycle percentage of PWM %d:%d: %d%%",
 		  __func__, pwm->chip, pwm->channel, percentage);
 
-	current_period = pwm_get_period(pwm);
+	current_period = ldx_pwm_get_period(pwm);
 	if (current_period == -1)
 		return PWM_CONFIG_ERROR;
 
-	return pwm_set_duty_cycle(pwm, (current_period / 100.0 * percentage) + 0.5);
+	return ldx_pwm_set_duty_cycle(pwm, (current_period / 100.0 * percentage) + 0.5);
 }
 
-int pwm_get_duty_percentage(pwm_t *pwm)
+int ldx_pwm_get_duty_percentage(pwm_t *pwm)
 {
 	int duty_cycle;
 	int period;
@@ -318,15 +318,15 @@ int pwm_get_duty_percentage(pwm_t *pwm)
 	log_debug("%s: Getting duty cycle percentage of PWM %d:%d", __func__,
 		  pwm->chip, pwm->channel);
 
-	duty_cycle = pwm_get_duty_cycle(pwm);
-	period = pwm_get_period(pwm);
+	duty_cycle = ldx_pwm_get_duty_cycle(pwm);
+	period = ldx_pwm_get_period(pwm);
 	if (duty_cycle > 0 && period > 0)
 		return (duty_cycle * 1.0 / period * 100) + 0.5;
 
 	return -1;
 }
 
-int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity)
+int ldx_pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity)
 {
 	if (check_valid_pwm(pwm) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -350,7 +350,7 @@ int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity)
 	return libsoc_pwm_set_polarity(pwm->_data, polarity);
 }
 
-pwm_polarity_t pwm_get_polarity(pwm_t *pwm)
+pwm_polarity_t ldx_pwm_get_polarity(pwm_t *pwm)
 {
 	libsoc_pwm_polarity_t polarity = POLARITY_ERROR;
 
@@ -376,7 +376,7 @@ pwm_polarity_t pwm_get_polarity(pwm_t *pwm)
 	}
 }
 
-int pwm_enable(pwm_t *pwm, pwm_enabled_t enabled)
+int ldx_pwm_enable(pwm_t *pwm, pwm_enabled_t enabled)
 {
 	if (check_valid_pwm(pwm) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -399,7 +399,7 @@ int pwm_enable(pwm_t *pwm, pwm_enabled_t enabled)
 	return libsoc_pwm_set_enabled(pwm->_data, enabled);
 }
 
-pwm_enabled_t pwm_is_enabled(pwm_t *pwm)
+pwm_enabled_t ldx_pwm_is_enabled(pwm_t *pwm)
 {
 	libsoc_pwm_enabled_t enabled = ENABLED_ERROR;
 

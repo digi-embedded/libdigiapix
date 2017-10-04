@@ -116,38 +116,38 @@ typedef struct {
 } spi_t;
 
 /**
- * spi_request() - Request a SPI to use
+ * ldx_spi_request() - Request a SPI to use
  *
  * @spi_device:	The SPI device index to use.
  * @spi_slave:	The SPI slave index to use.
  *
  * This function returns a spi_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'spi_free()'.
+ * with 'malloc' and must be freed with 'ldx_spi_free()'.
  *
  * Return: A pointer to spi_t on success, NULL on error.
  */
-spi_t *spi_request(unsigned int spi_device, unsigned int spi_slave);
+spi_t *ldx_spi_request(unsigned int spi_device, unsigned int spi_slave);
 
 /**
- * spi_request_by_alias() - Request a SPI to use using its alias name
+ * ldx_spi_request_by_alias() - Request a SPI to use using its alias name
  *
  * @spi_alias:	The alias name of the SPI to use.
  *
  * This function returns a spi_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'spi_free()'.
+ * with 'malloc' and must be freed with 'ldx_spi_free()'.
  *
  * Return: A pointer to spi_t on success, NULL on error.
  */
-spi_t *spi_request_by_alias(const char * const spi_alias);
+spi_t *ldx_spi_request_by_alias(const char * const spi_alias);
 
 /**
- * spi_get_device() - Get the SPI device number of a given alias
+ * ldx_spi_get_device() - Get the SPI device number of a given alias
  *
  * @spi_alias:	The alias of the SPI.
  *
  * Return: The SPI device number associated to the alias, -1 on error.
  */
-int spi_get_device(char const * const spi_alias);
+int ldx_spi_get_device(char const * const spi_alias);
 
 /**
  * spi_get_slave() - Get the SPI slave number of a given alias
@@ -156,10 +156,11 @@ int spi_get_device(char const * const spi_alias);
  *
  * Return: The SPI slave number associated to the alias, -1 on error.
  */
-int spi_get_slave(char const * const spi_alias);
+int ldx_spi_get_slave(char const * const spi_alias);
 
 /**
- * spi_list_available_devices() - Get the list of available SPI device indexes
+ * ldx_spi_list_available_devices() - Get the list of available SPI device
+ *				      indexes
  *
  * @devices:	A pointer to store the available SPI device indexes.
  *
@@ -170,11 +171,11 @@ int spi_get_slave(char const * const spi_alias);
  *
  * Return: The number of available SPI devices, -1 on error
  */
-int spi_list_available_devices(uint8_t **devices);
+int ldx_spi_list_available_devices(uint8_t **devices);
 
 /**
- * spi_list_available_slaves() - Get the list of the available SPI slave device
- *				 indexes for the given SPI device
+ * ldx_spi_list_available_slaves() - Get the list of the available SPI slave
+ *				     device indexes for the given SPI device
  *
  * @spi_device:	The index of the SPI device to check for slave devices.
  * @slaves:	A pointer to store the SPI slave device indexes.
@@ -188,39 +189,39 @@ int spi_list_available_devices(uint8_t **devices);
  * Return: The number of available slave devices for the given SPI device,
  *	   -1 on error
  */
-int spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves);
+int ldx_spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves);
 
 /**
- * spi_free() - Free a previously requested SPI
+ * ldx_spi_free() - Free a previously requested SPI
  *
  * @spi:	A pointer to the requested SPI to free.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_free(spi_t *spi);
+int ldx_spi_free(spi_t *spi);
 
 /**
- * spi_set_transfer_mode() - Change the given SPI transfer mode
+ * ldx_spi_set_transfer_mode() - Change the given SPI transfer mode
  *
  * @spi:		A requested SPI to set its transfer mode.
  * @transfer_mode:	The new SPI transfer mode (spi_transfer_cfg_t).
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_set_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode);
+int ldx_spi_set_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode);
 
 /**
- * spi_get_transfer_mode() - Get the given SPI transfer mode
+ * ldx_spi_get_transfer_mode() - Get the given SPI transfer mode
  *
  * @spi:		A requested SPI to get its transfer mode.
  * @transfer_mode:	Struct to store the read transfer mode (spi_transfer_cfg_t).
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode);
+int ldx_spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode);
 
 /**
- * spi_set_bits_per_word() - Change the given SPI bits-per-word
+ * ldx_spi_set_bits_per_word() - Change the given SPI bits-per-word
  *
  * @spi:	A requested SPI to configure the bits-per-word.
  * @bpw:	Bits-per-word to configure (spi_bpw_t).
@@ -231,10 +232,10 @@ int spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw);
+int ldx_spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw);
 
 /**
- * spi_get_bits_per_word() - Get the given SPI configured bits-per-word
+ * ldx_spi_get_bits_per_word() - Get the given SPI configured bits-per-word
  *
  * @spi:	A requested SPI to get the configured bits-per-word.
  *
@@ -245,29 +246,29 @@ int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw);
  * Return: The configured SPI bits-per-word (SPI_BPW_8, SPI_BPW_16) or
  *	   SPI_BPW_ERROR if it cannot be retrieved.
  */
-spi_bpw_t spi_get_bits_per_word(spi_t *spi);
+spi_bpw_t ldx_spi_get_bits_per_word(spi_t *spi);
 
 /**
- * spi_set_speed() - Change the SPI bus max speed
+ * ldx_spi_set_speed() - Change the SPI bus max speed
  *
  * @spi:	A requested SPI to configure the bus speed.
  * @speed:	The new speed to set in Hz.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_set_speed(spi_t *spi, unsigned int speed);
+int ldx_spi_set_speed(spi_t *spi, unsigned int speed);
 
 /**
- * spi_get_speed() - Get the SPI configured max speed
+ * ldx_spi_get_speed() - Get the SPI configured max speed
  *
  * @spi:	A requested SPI to get the max speed.
  *
  * Return: The configured SPI max speed in Hz, -1 on error.
  */
-int spi_get_speed(spi_t *spi);
+int ldx_spi_get_speed(spi_t *spi);
 
 /**
- * spi_write() - Write data to the SPI bus
+ * ldx_spi_write() - Write data to the SPI bus
  *
  * @spi:	A requested SPI to write data to.
  * @tx_data:	Array of bytes to write.
@@ -275,10 +276,10 @@ int spi_get_speed(spi_t *spi);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length);
+int ldx_spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length);
 
 /**
- * spi_read() - Read data from the SPI bus
+ * ldx_spi_read() - Read data from the SPI bus
  *
  * @spi:	A requested SPI to read data from.
  * @rx_data:	Array of bytes to store read data into.
@@ -286,10 +287,10 @@ int spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length);
+int ldx_spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length);
 
 /**
- * spi_transfer() - Write and read data from the SPI bus simultaneously
+ * ldx_spi_transfer() - Write and read data from the SPI bus simultaneously
  *
  * @spi:	A requested SPI to write and read data from.
  * @tx_data:	Array of bytes to write.
@@ -298,8 +299,8 @@ int spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int spi_transfer(spi_t *spi, uint8_t *tx_data, uint8_t *rx_data,
-		 unsigned int length);
+int ldx_spi_transfer(spi_t *spi, uint8_t *tx_data, uint8_t *rx_data,
+		     unsigned int length);
 
 #ifdef __cplusplus
 }

@@ -38,49 +38,49 @@ typedef struct {
 } i2c_t;
 
 /**
- * i2c_request() - Request a I2C bus to use
+ * ldx_i2c_request() - Request a I2C bus to use
  *
  * @i2c_bus:	The Linux bus number of the I2C to request.
  *
  * This function returns a i2c_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'i2c_free()'.
+ * with 'malloc' and must be freed with 'ldx_i2c_free()'.
  *
  * Return: A pointer to i2c_t on success, NULL on error.
  */
-i2c_t *i2c_request(unsigned int i2c_bus);
+i2c_t *ldx_i2c_request(unsigned int i2c_bus);
 
 /**
- * i2c_request_by_alias() - Request a I2C bus using its alias name
+ * ldx_i2c_request_by_alias() - Request a I2C bus using its alias name
  *
  * @i2c_alias:		The alias name of the I2C to request.
  *
  * This function returns a i2c_t pointer. Memory for the struct is obtained
- * with 'malloc' and must be freed with 'i2c_free()'.
+ * with 'malloc' and must be freed with 'ldx_i2c_free()'.
  *
  * Return: A pointer to i2c_t on success, NULL on error.
  */
-i2c_t *i2c_request_by_alias(const char * const i2c_alias);
+i2c_t *ldx_i2c_request_by_alias(const char * const i2c_alias);
 
 /**
- * i2c_free() - Free a previously requested I2C
+ * ldx_i2c_free() - Free a previously requested I2C
  *
  * @i2c:	A pointer to the requested I2C to free.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_free(i2c_t *i2c);
+int ldx_i2c_free(i2c_t *i2c);
 
 /**
- * i2c_get_bus() - Get the given I2C bus index using its alias name
+ * ldx_i2c_get_bus() - Get the given I2C bus index using its alias name
  *
  * i2c_alias:	The alias of the I2C.
  *
  * Return: The Linux bus index or -1 on error.
  */
-int i2c_get_bus(const char * const i2c_alias);
+int ldx_i2c_get_bus(const char * const i2c_alias);
 
 /**
- * i2c_list_available_buses() - Get list of available I2C buses
+ * ldx_i2c_list_available_buses() - Get list of available I2C buses
  *
  * @buses:	A pointer to store the available I2C bus indexes.
  *
@@ -91,10 +91,10 @@ int i2c_get_bus(const char * const i2c_alias);
  *
  * Return: The number of available I2C buses, -1 on error.
  */
-int i2c_list_available_buses(uint8_t **buses);
+int ldx_i2c_list_available_buses(uint8_t **buses);
 
 /**
- * i2c_set_timeout() - Set the I2C bus timeout in milliseconds
+ * ldx_i2c_set_timeout() - Set the I2C bus timeout in milliseconds
  *
  * @i2c:	A requested I2C to set the timeout.
  * @timeout:	I2C bus timeout value.
@@ -103,10 +103,10 @@ int i2c_list_available_buses(uint8_t **buses);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_set_timeout(i2c_t *i2c, unsigned int timeout);
+int ldx_i2c_set_timeout(i2c_t *i2c, unsigned int timeout);
 
 /**
- * i2c_set_retries() - Set the I2C bus poll retries
+ * ldx_i2c_set_retries() - Set the I2C bus poll retries
  *
  * @i2c:	A requested I2C to set the device polling retries.
  * @retry:	I2C bus retry value.
@@ -115,10 +115,10 @@ int i2c_set_timeout(i2c_t *i2c, unsigned int timeout);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_set_retries(i2c_t *i2c, unsigned int retry);
+int ldx_i2c_set_retries(i2c_t *i2c, unsigned int retry);
 
 /**
- * i2c_read() - Read data from the I2C slave device
+ * ldx_i2c_read() - Read data from the I2C slave device
  *
  * @i2c:		A requested I2C bus to read from.
  * @i2c_address:	Address of the I2C slave device to read from
@@ -130,10 +130,10 @@ int i2c_set_retries(i2c_t *i2c, unsigned int retry);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
+int ldx_i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
 
 /**
- * i2c_write() - Send data to an I2C slave device
+ * ldx_i2c_write() - Send data to an I2C slave device
  *
  * @i2c:		A requested I2C bus to write from.
  * @i2c_address:	Address of the I2C slave device to write to.
@@ -146,10 +146,10 @@ int i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t len
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
+int ldx_i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
 
 /**
- * i2c_transfer() - Transfer data with an the I2C slave device
+ * ldx_i2c_transfer() - Transfer data with an the I2C slave device
  *
  * @i2c:		A requested I2C bus to transfer to/from.
  * @i2c_address:	Address of the I2C slave device to transfer data with.
@@ -166,7 +166,7 @@ int i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer, uint16_t le
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_transfer(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer_to_write,
+int ldx_i2c_transfer(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer_to_write,
 		uint16_t w_length, uint8_t *buffer_to_read, uint16_t r_length);
 
 #ifdef __cplusplus

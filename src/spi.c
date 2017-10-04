@@ -65,7 +65,7 @@ static int check_bit_order(spi_bo_t bit_order);
 static int check_bpw(spi_bpw_t bpw);
 static int check_data_buffer(uint8_t *buffer);
 
-spi_t *spi_request(unsigned int spi_device, unsigned int spi_slave)
+spi_t *ldx_spi_request(unsigned int spi_device, unsigned int spi_slave)
 {
 	libsoc_spi_t *_spi = NULL;
 	spi_t *new_spi = NULL;
@@ -92,26 +92,26 @@ spi_t *spi_request(unsigned int spi_device, unsigned int spi_slave)
 	return new_spi;
 }
 
-spi_t *spi_request_by_alias(const char * const spi_alias)
+spi_t *ldx_spi_request_by_alias(const char * const spi_alias)
 {
 	int spi_device, spi_slave;
 	spi_t *new_spi = NULL;
 
 	log_debug("%s: Requesting SPI '%s'", __func__, spi_alias);
 
-	spi_device = spi_get_device(spi_alias);
+	spi_device = ldx_spi_get_device(spi_alias);
 	if (spi_device == -1) {
 		log_error("%s: Invalid SPI alias, '%s'", __func__, spi_alias);
 		return NULL;
 	}
 
-	spi_slave = spi_get_slave(spi_alias);
+	spi_slave = ldx_spi_get_slave(spi_alias);
 	if (spi_slave == -1) {
 		log_error("%s: Invalid SPI alias, '%s'", __func__, spi_alias);
 		return NULL;
 	}
 
-	new_spi = spi_request(spi_device, spi_slave);
+	new_spi = ldx_spi_request(spi_device, spi_slave);
 	if (new_spi != NULL) {
 		spi_t init_spi = {spi_alias, spi_device, spi_slave,
 				((spi_t *)new_spi)->_data};
@@ -121,7 +121,7 @@ spi_t *spi_request_by_alias(const char * const spi_alias)
 	return new_spi;
 }
 
-int spi_get_device(char const * const spi_alias)
+int ldx_spi_get_device(char const * const spi_alias)
 {
 	if (config_check_alias(spi_alias) != EXIT_SUCCESS)
 		return -1;
@@ -129,7 +129,7 @@ int spi_get_device(char const * const spi_alias)
 	return config_get_spi_device_number(spi_alias);
 }
 
-int spi_get_slave(char const * const spi_alias)
+int ldx_spi_get_slave(char const * const spi_alias)
 {
 	if (config_check_alias(spi_alias) != EXIT_SUCCESS)
 		return -1;
@@ -137,7 +137,7 @@ int spi_get_slave(char const * const spi_alias)
 	return config_get_spi_slave_number(spi_alias);
 }
 
-int spi_list_available_devices(uint8_t **devices)
+int ldx_spi_list_available_devices(uint8_t **devices)
 {
 	uint8_t i, count = 0;
 	uint8_t _devices[MAX_SPI_DEVICES] = {0};
@@ -169,7 +169,7 @@ int spi_list_available_devices(uint8_t **devices)
 	return count;
 }
 
-int spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
+int ldx_spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
 {
 	uint8_t i, count = 0;
 	uint8_t _slaves[MAX_SPI_SLAVES] = {0};
@@ -198,7 +198,7 @@ int spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
 	return count;
 }
 
-int spi_free(spi_t *spi)
+int ldx_spi_free(spi_t *spi)
 {
 	int ret = EXIT_SUCCESS;
 
@@ -216,7 +216,7 @@ int spi_free(spi_t *spi)
 	return ret;
 }
 
-int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
+int ldx_spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 {
 	libsoc_spi_t *_spi = NULL;
 	uint8_t new_value = 0;
@@ -279,7 +279,7 @@ int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 	return EXIT_SUCCESS;
 }
 
-int spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
+int ldx_spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
 {
 	libsoc_spi_t *_spi = NULL;
 	uint8_t read_value = 0;
@@ -354,7 +354,7 @@ int spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
 	return EXIT_SUCCESS;
 }
 
-int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
+int ldx_spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 {
 	libsoc_spi_bpw_t _bpw = BPW_ERROR;
 
@@ -390,7 +390,7 @@ int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 	return EXIT_SUCCESS;
 }
 
-spi_bpw_t spi_get_bits_per_word(spi_t *spi)
+spi_bpw_t ldx_spi_get_bits_per_word(spi_t *spi)
 {
 	libsoc_spi_bpw_t bpw;
 
@@ -418,7 +418,7 @@ spi_bpw_t spi_get_bits_per_word(spi_t *spi)
 	}
 }
 
-int spi_set_speed(spi_t *spi, unsigned int speed)
+int ldx_spi_set_speed(spi_t *spi, unsigned int speed)
 {
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -435,7 +435,7 @@ int spi_set_speed(spi_t *spi, unsigned int speed)
 	return EXIT_SUCCESS;
 }
 
-int spi_get_speed(spi_t *spi)
+int ldx_spi_get_speed(spi_t *spi)
 {
 	int speed = -1;
 
@@ -455,7 +455,7 @@ int spi_get_speed(spi_t *spi)
 	return speed;
 }
 
-int spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length)
+int ldx_spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length)
 {
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -478,7 +478,7 @@ int spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length)
 	return EXIT_SUCCESS;
 }
 
-int spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length)
+int ldx_spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length)
 {
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -501,7 +501,7 @@ int spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length)
 	return EXIT_SUCCESS;
 }
 
-int spi_transfer(spi_t *spi, uint8_t *tx_data, uint8_t *rx_data, unsigned int length)
+int ldx_spi_transfer(spi_t *spi, uint8_t *tx_data, uint8_t *rx_data, unsigned int length)
 {
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;

@@ -78,7 +78,7 @@ static int check_gpio(gpio_t *gpio);
 static int set_direction(libsoc_gpio_t *gpio, _gpio_dir_modes_t dir);
 static int check_mode(gpio_mode_t mode);
 
-gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode)
+gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode)
 {
 	gpio_t *new_gpio = NULL;
 	struct _gpio_t *data = NULL;
@@ -127,15 +127,15 @@ gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_
 	memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
 	new_gpio->_data = data;
 
-	if (gpio_set_mode(new_gpio, mode) != EXIT_SUCCESS) {
-		gpio_free(new_gpio);
+	if (ldx_gpio_set_mode(new_gpio, mode) != EXIT_SUCCESS) {
+		ldx_gpio_free(new_gpio);
 		return NULL;
 	}
 
 	return new_gpio;
 }
 
-gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode)
+gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode)
 {
 	int kernel_number;
 	gpio_t *new_gpio = NULL;
@@ -153,13 +153,13 @@ gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, r
 			__func__, gpio_alias, gpio_mode_strings[mode],
 			mode, request_mode);
 
-	kernel_number = gpio_get_kernel_number(gpio_alias);
+	kernel_number = ldx_gpio_get_kernel_number(gpio_alias);
 	if (kernel_number == -1) {
 		log_error("%s: Invalid GPIO alias, '%s'", __func__, gpio_alias);
 		return NULL;
 	}
 
-	new_gpio = gpio_request(kernel_number, mode, request_mode);
+	new_gpio = ldx_gpio_request(kernel_number, mode, request_mode);
 	if (new_gpio != NULL) {
 		gpio_t init_gpio = {gpio_alias, kernel_number, new_gpio->_data};
 
@@ -169,7 +169,7 @@ gpio_t *gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, r
 	return new_gpio;
 }
 
-int gpio_get_kernel_number(const char * const gpio_alias)
+int ldx_gpio_get_kernel_number(const char * const gpio_alias)
 {
 	if (config_check_alias(gpio_alias) != EXIT_SUCCESS)
 		return -1;
@@ -177,7 +177,7 @@ int gpio_get_kernel_number(const char * const gpio_alias)
 	return config_get_gpio_kernel_number(gpio_alias);
 }
 
-int gpio_free(gpio_t *gpio)
+int ldx_gpio_free(gpio_t *gpio)
 {
 	int ret = EXIT_SUCCESS;
 	struct _gpio_t *_data = NULL;
@@ -198,7 +198,7 @@ int gpio_free(gpio_t *gpio)
 	return ret;
 }
 
-int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
+int ldx_gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 {
 	int ret = EXIT_FAILURE;
 	struct _gpio_t *_data = NULL;
@@ -269,7 +269,7 @@ int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 	return ret;
 }
 
-gpio_mode_t gpio_get_mode(gpio_t *gpio)
+gpio_mode_t ldx_gpio_get_mode(gpio_t *gpio)
 {
 	struct _gpio_t *_data = NULL;
 	libsoc_gpio_direction_t dir = DIRECTION_ERROR;
@@ -331,7 +331,7 @@ gpio_mode_t gpio_get_mode(gpio_t *gpio)
 	return GPIO_MODE_ERROR;
 }
 
-int gpio_set_value(gpio_t *gpio, gpio_value_t value)
+int ldx_gpio_set_value(gpio_t *gpio, gpio_value_t value)
 {
 	struct _gpio_t *_data = NULL;
 	int ret = EXIT_FAILURE;
@@ -364,7 +364,7 @@ int gpio_set_value(gpio_t *gpio, gpio_value_t value)
 	return ret;
 }
 
-gpio_value_t gpio_get_value(gpio_t *gpio)
+gpio_value_t ldx_gpio_get_value(gpio_t *gpio)
 {
 	struct _gpio_t *_data = NULL;
 	libsoc_gpio_level_t level = LEVEL_ERROR;
@@ -387,7 +387,7 @@ gpio_value_t gpio_get_value(gpio_t *gpio)
 	return level;
 }
 
-int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t active_mode)
+int ldx_gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t active_mode)
 {
 	int fd;
 	char path[BUFF_SIZE];
@@ -436,7 +436,7 @@ int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t active_mode)
 	return EXIT_SUCCESS;
 }
 
-gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio)
+gpio_active_mode_t ldx_gpio_get_active_mode(gpio_t *gpio)
 {
 	char tmp_str[BUFF_SIZE], level[2];
 	int fd;
@@ -475,7 +475,7 @@ gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio)
 	return level[0] == '0' ? GPIO_ACTIVE_HIGH : GPIO_ACTIVE_LOW;
 }
 
-gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout)
+gpio_irq_error_t ldx_gpio_wait_interrupt(gpio_t *gpio, int timeout)
 {
 	struct _gpio_t *_data = NULL;
 	libsoc_gpio_int_ret_t int_ret = GPIO_IRQ_ERROR;
@@ -514,7 +514,7 @@ gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout)
 	}
 }
 
-int gpio_start_wait_interrupt(gpio_t *gpio, const gpio_interrupt_cb_t interrupt_cb, void *arg)
+int ldx_gpio_start_wait_interrupt(gpio_t *gpio, const ldx_gpio_interrupt_cb_t interrupt_cb, void *arg)
 {
 	struct _gpio_t *_data = NULL;
 	libsoc_gpio_edge_t edge = EDGE_ERROR;
@@ -549,7 +549,7 @@ int gpio_start_wait_interrupt(gpio_t *gpio, const gpio_interrupt_cb_t interrupt_
 	return libsoc_gpio_callback_interrupt(_data->_internal_gpio, interrupt_cb, arg);
 }
 
-int gpio_stop_wait_interrupt(gpio_t *gpio)
+int ldx_gpio_stop_wait_interrupt(gpio_t *gpio)
 {
 	struct _gpio_t *_data = NULL;
 	int ret = EXIT_FAILURE;

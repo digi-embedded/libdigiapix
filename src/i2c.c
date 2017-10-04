@@ -31,7 +31,7 @@
 
 static int check_i2c(i2c_t *i2c);
 
-i2c_t *i2c_request(unsigned int i2c_bus)
+i2c_t *ldx_i2c_request(unsigned int i2c_bus)
 {
 	libsoc_i2c_t *_i2c = NULL;
 	i2c_t *new_i2c = NULL;
@@ -58,16 +58,16 @@ i2c_t *i2c_request(unsigned int i2c_bus)
 	return new_i2c;
 }
 
-i2c_t *i2c_request_by_alias(char const * const i2c_alias)
+i2c_t *ldx_i2c_request_by_alias(char const * const i2c_alias)
 {
 	int i2c_bus;
 	void *new_i2c = NULL;
 
 	log_debug("%s: Requesting I2C '%s'", __func__, i2c_alias);
 
-	i2c_bus = i2c_get_bus(i2c_alias);
+	i2c_bus = ldx_i2c_get_bus(i2c_alias);
 
-	new_i2c = i2c_request((unsigned int)i2c_bus);
+	new_i2c = ldx_i2c_request((unsigned int)i2c_bus);
 	if (new_i2c != NULL) {
 		i2c_t init_i2c = {i2c_alias, i2c_bus, ((i2c_t *)new_i2c)->_data};
 
@@ -77,7 +77,7 @@ i2c_t *i2c_request_by_alias(char const * const i2c_alias)
 	return new_i2c;
 }
 
-int i2c_get_bus(char const * const i2c_alias)
+int ldx_i2c_get_bus(char const * const i2c_alias)
 {
 	if (config_check_alias(i2c_alias) != EXIT_SUCCESS)
 		return -1;
@@ -85,7 +85,7 @@ int i2c_get_bus(char const * const i2c_alias)
 	return config_get_i2c_bus(i2c_alias);
 }
 
-int i2c_list_available_buses(uint8_t **buses)
+int ldx_i2c_list_available_buses(uint8_t **buses)
 {
 	uint8_t i, next = 0;
 	uint8_t _buses[MAX_I2C_BUSES] = {0};
@@ -119,7 +119,7 @@ int i2c_list_available_buses(uint8_t **buses)
 	return next;
 }
 
-int i2c_free(i2c_t *i2c)
+int ldx_i2c_free(i2c_t *i2c)
 {
 	int ret = EXIT_SUCCESS;
 
@@ -136,7 +136,7 @@ int i2c_free(i2c_t *i2c)
 	return ret;
 }
 
-int i2c_set_timeout(i2c_t *i2c, unsigned int timeout)
+int ldx_i2c_set_timeout(i2c_t *i2c, unsigned int timeout)
 {
 	if (check_i2c(i2c) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -152,7 +152,7 @@ int i2c_set_timeout(i2c_t *i2c, unsigned int timeout)
 	return EXIT_SUCCESS;
 }
 
-int i2c_set_retries(i2c_t *i2c, unsigned int retry)
+int ldx_i2c_set_retries(i2c_t *i2c, unsigned int retry)
 {
 	libsoc_i2c_t *_i2c = NULL;
 
@@ -172,8 +172,8 @@ int i2c_set_retries(i2c_t *i2c, unsigned int retry)
 	return EXIT_SUCCESS;
 }
 
-int i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
-             uint16_t length)
+int ldx_i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
+		 uint16_t length)
 {
 	libsoc_i2c_t *_i2c = NULL;
 
@@ -205,8 +205,8 @@ int i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
 	return EXIT_SUCCESS;
 }
 
-int i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
-	      uint16_t length)
+int ldx_i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
+		  uint16_t length)
 {
 	libsoc_i2c_t *_i2c = NULL;
 
@@ -238,8 +238,9 @@ int i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
 	return EXIT_SUCCESS;
 }
 
-int i2c_transfer(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer_to_write,
-		 uint16_t w_length, uint8_t *buffer_to_read, uint16_t r_length)
+int ldx_i2c_transfer(i2c_t *i2c, unsigned int i2c_address,
+		     uint8_t *buffer_to_write, uint16_t w_length,
+		     uint8_t *buffer_to_read, uint16_t r_length)
 {
 	libsoc_i2c_t *_i2c = NULL;
 
