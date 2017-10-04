@@ -17,13 +17,13 @@
 
 #include <fcntl.h>
 #include <stdlib.h>
-#include <libsoc_i2c.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 
 #include "_common.h"
+#include "_libsoc_interfaces.h"
 #include "_log.h"
 #include "i2c.h"
 
@@ -33,7 +33,7 @@ static int check_i2c(i2c_t *i2c);
 
 i2c_t *i2c_request(unsigned int i2c_bus)
 {
-	i2c *_i2c = NULL;
+	libsoc_i2c_t *_i2c = NULL;
 	i2c_t *new_i2c = NULL;
 	i2c_t init_i2c = { NULL, i2c_bus, NULL };
 
@@ -152,110 +152,110 @@ int i2c_set_timeout(i2c_t *i2c, unsigned int timeout)
 	return EXIT_SUCCESS;
 }
 
-int i2c_set_retries(i2c_t *i2c_dev, unsigned int retry)
+int i2c_set_retries(i2c_t *i2c, unsigned int retry)
 {
-	i2c *_i2c = NULL;
+	libsoc_i2c_t *_i2c = NULL;
 
-	if (check_i2c(i2c_dev) != EXIT_SUCCESS)
+	if (check_i2c(i2c) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	_i2c = i2c_dev->_data;
+	_i2c = i2c->_data;
 
-	log_debug("%s: Setting I2C %d bus retries to %d", __func__, i2c_dev->bus, retry);
+	log_debug("%s: Setting I2C %d bus retries to %d", __func__, i2c->bus, retry);
 
 	if (ioctl(_i2c->fd, I2C_RETRIES, retry) < 0) {
 		log_error("%s: Unable to set I2C bus retries on I2C-%d",
-			  __func__, i2c_dev->bus);
+			  __func__, i2c->bus);
 		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
 
-int i2c_read(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer,
-	     uint16_t length)
+int i2c_read(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
+             uint16_t length)
 {
-	i2c *_i2c = NULL;
+	libsoc_i2c_t *_i2c = NULL;
 
-	if (check_i2c(i2c_dev) != EXIT_SUCCESS)
+	if (check_i2c(i2c) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	_i2c = i2c_dev->_data;
+	_i2c = i2c->_data;
 
 	if (length == 0)
 		return EXIT_SUCCESS;
 
 	if (buffer == NULL) {
 		log_error("%s: Unable to read data from I2C-%d slave 0x%x",
-			  __func__, i2c_dev->bus, i2c_address);
+			  __func__, i2c->bus, i2c_address);
 		return EXIT_FAILURE;
 	}
 
 	_i2c->address = i2c_address;
 
 	log_debug("%s: Reading %d bytes from I2C-%d at address %d", __func__,
-		  length, i2c_dev->bus, i2c_address);
+		  length, i2c->bus, i2c_address);
 
 	if (libsoc_i2c_read(_i2c, buffer, length) != EXIT_SUCCESS) {
 		log_error("%s: Unable to read data from I2C-%d slave 0x%x",
-			  __func__, i2c_dev->bus, i2c_address);
+			  __func__, i2c->bus, i2c_address);
 		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
 
-int i2c_write(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer,
+int i2c_write(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer,
 	      uint16_t length)
 {
-	i2c *_i2c = NULL;
+	libsoc_i2c_t *_i2c = NULL;
 
-	if (check_i2c(i2c_dev) != EXIT_SUCCESS)
+	if (check_i2c(i2c) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	_i2c = i2c_dev->_data;
+	_i2c = i2c->_data;
 
 	if (length == 0)
 		return EXIT_SUCCESS;
 
 	if (buffer == NULL) {
 		log_error("%s: Unable to write data from I2C-%d slave 0x%x",
-			  __func__, i2c_dev->bus, i2c_address);
+			  __func__, i2c->bus, i2c_address);
 		return EXIT_FAILURE;
 	}
 
 	_i2c->address = i2c_address;
 
 	log_debug("%s: Writing %d bytes to I2C-%d at address %d", __func__,
-		  length, i2c_dev->bus, i2c_address);
+		  length, i2c->bus, i2c_address);
 
 	if (libsoc_i2c_write(_i2c, buffer, length) != EXIT_SUCCESS) {
 		log_error("%s: Unable to write data from I2C-%d slave 0x%x",
-			  __func__, i2c_dev->bus, i2c_address);
+			  __func__, i2c->bus, i2c_address);
 		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
 
-int i2c_transfer(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer_to_write,
+int i2c_transfer(i2c_t *i2c, unsigned int i2c_address, uint8_t *buffer_to_write,
 		 uint16_t w_length, uint8_t *buffer_to_read, uint16_t r_length)
 {
-	i2c *_i2c = NULL;
+	libsoc_i2c_t *_i2c = NULL;
 
-	if (check_i2c(i2c_dev) != EXIT_SUCCESS)
+	if (check_i2c(i2c) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	_i2c = i2c_dev->_data;
+	_i2c = i2c->_data;
 	_i2c->address = i2c_address;
 
 	log_debug("%s: Transferring data with I2C-%d at address %d: Writing %d bytes and reading %d bytes",
-		  __func__, i2c_dev->bus, i2c_address, w_length, r_length);
+		  __func__, i2c->bus, i2c_address, w_length, r_length);
 
 	if ((buffer_to_write != NULL) && (w_length > 0)) {
 		if (libsoc_i2c_write(_i2c, buffer_to_write, w_length) != EXIT_SUCCESS) {
 			log_error("%s: Unable to transfer data to the I2C-%d slave 0x%x",
-				  __func__, i2c_dev->bus, i2c_address);
+				  __func__, i2c->bus, i2c_address);
 			return EXIT_FAILURE;
 		}
 	}
@@ -263,7 +263,7 @@ int i2c_transfer(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer_to_wr
 	if ((buffer_to_read != NULL) && (r_length > 0)) {
 		if (libsoc_i2c_read(_i2c, buffer_to_read, r_length) != EXIT_SUCCESS) {
 			log_error("%s: Unable to transfer data to the I2C-%d slave 0x%x",
-				  __func__, i2c_dev->bus, i2c_address);
+				  __func__, i2c->bus, i2c_address);
 			return EXIT_FAILURE;
 		}
 	}

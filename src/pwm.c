@@ -16,16 +16,16 @@
  */
 
 #include <fcntl.h>
-#include <libsoc_pwm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
 
-#include "pwm.h"
 #include "_common.h"
+#include "_libsoc_interfaces.h"
 #include "_log.h"
+#include "pwm.h"
 
 #define BUFF_SIZE		256
 #define SECS_TO_NANOSECS	1000000000.0
@@ -47,7 +47,7 @@ static int check_valid_pwm(pwm_t *pwm);
 pwm_t *pwm_request(unsigned int pwm_chip, unsigned int pwm_channel,
 		   request_mode_t request_mode)
 {
-	pwm *_pwm = NULL;
+	libsoc_pwm_t *_pwm = NULL;
 	pwm_t *new_pwm = NULL;
 	pwm_t init_pwm = {NULL, pwm_chip, pwm_channel, NULL};
 
@@ -352,7 +352,7 @@ int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity)
 
 pwm_polarity_t pwm_get_polarity(pwm_t *pwm)
 {
-	pwm_polarity polarity = POLARITY_ERROR;
+	libsoc_pwm_polarity_t polarity = POLARITY_ERROR;
 
 	if (check_valid_pwm(pwm) != EXIT_SUCCESS)
 		return PWM_POLARITY_ERROR;
@@ -401,7 +401,7 @@ int pwm_enable(pwm_t *pwm, pwm_enabled_t enabled)
 
 pwm_enabled_t pwm_is_enabled(pwm_t *pwm)
 {
-	pwm_enabled enabled = ENABLED_ERROR;
+	libsoc_pwm_enabled_t enabled = ENABLED_ERROR;
 
 	if (check_valid_pwm(pwm) != EXIT_SUCCESS)
 		return PWM_ENABLED_ERROR;

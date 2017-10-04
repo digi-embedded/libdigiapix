@@ -17,19 +17,19 @@
 
 #include <fcntl.h>
 #include <stdlib.h>
-#include <libsoc_gpio.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 
 #include "_common.h"
+#include "_libsoc_interfaces.h"
 #include "_log.h"
 #include "gpio.h"
 
 struct _gpio_t {
 	int _mode;
-	gpio *_internal_gpio;
+	libsoc_gpio_t *_internal_gpio;
 };
 
 #define BUFF_SIZE	256
@@ -75,7 +75,7 @@ static const char * const gpio_edge_strings[] = {
 };
 
 static int check_gpio(gpio_t *gpio);
-static int set_direction(gpio *gpio, _gpio_dir_modes_t dir);
+static int set_direction(libsoc_gpio_t *gpio, _gpio_dir_modes_t dir);
 static int check_mode(gpio_mode_t mode);
 
 gpio_t *gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode)
@@ -203,7 +203,7 @@ int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 	int ret = EXIT_FAILURE;
 	struct _gpio_t *_data = NULL;
 	_gpio_dir_modes_t dir = in;
-	gpio_edge edge = EDGE_ERROR;
+	libsoc_gpio_edge_t edge = EDGE_ERROR;
 
 	if (check_gpio(gpio) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -272,8 +272,8 @@ int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 gpio_mode_t gpio_get_mode(gpio_t *gpio)
 {
 	struct _gpio_t *_data = NULL;
-	gpio_direction dir = DIRECTION_ERROR;
-	gpio_edge edge = EDGE_ERROR;
+	libsoc_gpio_direction_t dir = DIRECTION_ERROR;
+	libsoc_gpio_edge_t edge = EDGE_ERROR;
 
 	if (check_gpio(gpio) != EXIT_SUCCESS)
 		return GPIO_MODE_ERROR;
@@ -367,7 +367,7 @@ int gpio_set_value(gpio_t *gpio, gpio_value_t value)
 gpio_value_t gpio_get_value(gpio_t *gpio)
 {
 	struct _gpio_t *_data = NULL;
-	gpio_level level = LEVEL_ERROR;
+	libsoc_gpio_level_t level = LEVEL_ERROR;
 
 	if (check_gpio(gpio) != EXIT_SUCCESS)
 		return GPIO_VALUE_ERROR;
@@ -478,7 +478,7 @@ gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio)
 gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout)
 {
 	struct _gpio_t *_data = NULL;
-	gpio_int_ret int_ret = GPIO_IRQ_ERROR;
+	libsoc_gpio_int_ret_t int_ret = GPIO_IRQ_ERROR;
 
 	if (timeout < -1) {
 		log_error("%s: Invalid timeout value, %d", __func__, timeout);
@@ -517,7 +517,7 @@ gpio_irq_error_t gpio_wait_interrupt(gpio_t *gpio, int timeout)
 int gpio_start_wait_interrupt(gpio_t *gpio, const gpio_interrupt_cb_t interrupt_cb, void *arg)
 {
 	struct _gpio_t *_data = NULL;
-	gpio_edge edge = EDGE_ERROR;
+	libsoc_gpio_edge_t edge = EDGE_ERROR;
 
 	if (check_gpio(gpio) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -612,7 +612,7 @@ static int check_gpio(gpio_t *gpio)
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-static int set_direction(gpio *gpio, _gpio_dir_modes_t dir)
+static int set_direction(libsoc_gpio_t *gpio, _gpio_dir_modes_t dir)
 {
 	int fd;
 	char path[BUFF_SIZE];

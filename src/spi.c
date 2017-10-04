@@ -18,7 +18,6 @@
 #include <fcntl.h>
 #include <glob.h>
 #include <stdlib.h>
-#include <libsoc_spi.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -26,6 +25,7 @@
 #include <linux/spi/spidev.h>
 
 #include "_common.h"
+#include "_libsoc_interfaces.h"
 #include "_log.h"
 #include "spi.h"
 
@@ -67,7 +67,7 @@ static int check_data_buffer(uint8_t *buffer);
 
 spi_t *spi_request(unsigned int spi_device, unsigned int spi_slave)
 {
-	spi *_spi = NULL;
+	libsoc_spi_t *_spi = NULL;
 	spi_t *new_spi = NULL;
 	spi_t init_spi = { NULL, spi_device, spi_slave, NULL };
 
@@ -218,7 +218,7 @@ int spi_free(spi_t *spi)
 
 int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 {
-	spi *_spi = NULL;
+	libsoc_spi_t *_spi = NULL;
 	uint8_t new_value = 0;
 
 	if (check_spi(spi_dev) != EXIT_SUCCESS)
@@ -262,7 +262,7 @@ int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 		break;
 	}
 
-	_spi = (spi *)spi_dev->_data;
+	_spi = (libsoc_spi_t *)spi_dev->_data;
 
 	if (ioctl(_spi->fd, SPI_IOC_WR_MODE, &new_value) == -1) {
 		log_error("%s: Unable to set SPI %d:%d transfer mode to to:\n - Clock mode '%s' (%d)\n - Chip select '%s' (%d)\n - Bit order '%s' (%d)\n",
@@ -279,12 +279,12 @@ int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 	return EXIT_SUCCESS;
 }
 
-int spi_get_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
+int spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
 {
-	spi *_spi = NULL;
+	libsoc_spi_t *_spi = NULL;
 	uint8_t read_value = 0;
 
-	if (check_spi(spi_dev) != EXIT_SUCCESS)
+	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
 	if (transfer_mode == NULL) {
@@ -293,13 +293,13 @@ int spi_get_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 	}
 
 	log_debug("%s: Getting transfer mode of SPI %d:%d", __func__,
-		  spi_dev->spi_device, spi_dev->spi_slave);
+		  spi->spi_device, spi->spi_slave);
 
-	_spi = (spi *)spi_dev->_data;
+	_spi = (libsoc_spi_t *)spi->_data;
 
 	if (ioctl(_spi->fd, SPI_IOC_RD_MODE, &read_value) == -1) {
 		log_error("%s: Unable to get SPI %d:%d transfer mode",
-			  __func__, spi_dev->spi_device, spi_dev->spi_slave);
+			  __func__, spi->spi_device, spi->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -356,7 +356,7 @@ int spi_get_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 
 int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 {
-	spi_bpw _bpw = BPW_ERROR;
+	libsoc_spi_bpw_t _bpw = BPW_ERROR;
 
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
@@ -392,7 +392,7 @@ int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 
 spi_bpw_t spi_get_bits_per_word(spi_t *spi)
 {
-	spi_bpw bpw;
+	libsoc_spi_bpw_t bpw;
 
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return SPI_BPW_ERROR;
