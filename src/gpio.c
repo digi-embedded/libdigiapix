@@ -400,8 +400,7 @@ int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t active_mode)
 	case GPIO_ACTIVE_LOW:
 		break;
 	default:
-		log_error("%s: Invalid GPIO active_low value, %d. \
-		          Mode must be '%s' or '%s'",
+		log_error("%s: Invalid GPIO active_low value, %d. Mode must be '%s' or '%s'",
 			  __func__, active_mode,
 			  gpio_active_mode_strings[GPIO_ACTIVE_HIGH],
 			  gpio_active_mode_strings[GPIO_ACTIVE_LOW]);

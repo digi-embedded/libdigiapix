@@ -115,7 +115,7 @@ spi_t *spi_request_by_alias(const char * const spi_alias)
 	if (new_spi != NULL) {
 		spi_t init_spi = {spi_alias, spi_device, spi_slave,
 				((spi_t *)new_spi)->_data};
-		memcpy(new_spi, &init_spi, sizeof (spi_t));
+		memcpy(new_spi, &init_spi, sizeof(spi_t));
 	}
 
 	return new_spi;
@@ -163,9 +163,8 @@ int spi_list_available_devices(uint8_t **devices)
 		return -1;
 	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
 		(*devices)[i] = _devices[i];
-	}
 
 	return count;
 }
@@ -176,9 +175,9 @@ int spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
 	uint8_t _slaves[MAX_SPI_SLAVES] = {0};
 	char path[20];
 
-	for (i = 0; i < MAX_SPI_SLAVES; i++){
+	for (i = 0; i < MAX_SPI_SLAVES; i++) {
 		sprintf(path, "/dev/spidev%d.%d", spi_device, i);
-		if (access(path, F_OK) == 0){
+		if (access(path, F_OK) == 0) {
 			_slaves[count] = i;
 			count++;
 		}
@@ -193,9 +192,8 @@ int spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
 		return -1;
 	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
 		(*slaves)[i] = _slaves[i];
-	}
 
 	return count;
 }
@@ -208,7 +206,7 @@ int spi_free(spi_t *spi)
 		return EXIT_SUCCESS;
 
 	log_debug("%s: Freeing SPI %d:%d", __func__, spi->spi_device,
-			  spi->spi_slave);
+		  spi->spi_slave);
 
 	if (spi->_data != NULL)
 		ret = libsoc_spi_free(spi->_data);
@@ -230,13 +228,13 @@ int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 		return EXIT_FAILURE;
 
 	log_debug("%s: Setting SPI %d:%d transfer mode to:\n - Clock mode '%s' (%d)\n - Chip select '%s' (%d)\n - Bit order '%s' (%d)\n",
-			  __func__, spi_dev->spi_device, spi_dev->spi_slave,
-			  spi_clk_mode_strings[transfer_mode->clk_mode],
-			  transfer_mode->clk_mode,
-			  spi_cs_strings[transfer_mode->chip_select],
-			  transfer_mode->chip_select,
-			  spi_bo_strings[transfer_mode->bit_order],
-			  transfer_mode->bit_order);
+		  __func__, spi_dev->spi_device, spi_dev->spi_slave,
+		  spi_clk_mode_strings[transfer_mode->clk_mode],
+		  transfer_mode->clk_mode,
+		  spi_cs_strings[transfer_mode->chip_select],
+		  transfer_mode->chip_select,
+		  spi_bo_strings[transfer_mode->bit_order],
+		  transfer_mode->bit_order);
 
 	/* Set clock mode */
 	new_value = transfer_mode->clk_mode;
@@ -268,10 +266,13 @@ int spi_set_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 
 	if (ioctl(_spi->fd, SPI_IOC_WR_MODE, &new_value) == -1) {
 		log_error("%s: Unable to set SPI %d:%d transfer mode to to:\n - Clock mode '%s' (%d)\n - Chip select '%s' (%d)\n - Bit order '%s' (%d)\n",
-			__func__, spi_dev->spi_device, spi_dev->spi_slave,
-			spi_clk_mode_strings[transfer_mode->clk_mode], transfer_mode->clk_mode,
-			spi_cs_strings[transfer_mode->chip_select], transfer_mode->chip_select,
-			spi_bo_strings[transfer_mode->bit_order], transfer_mode->bit_order);
+			  __func__, spi_dev->spi_device, spi_dev->spi_slave,
+			  spi_clk_mode_strings[transfer_mode->clk_mode],
+			  transfer_mode->clk_mode,
+			  spi_cs_strings[transfer_mode->chip_select],
+			  transfer_mode->chip_select,
+			  spi_bo_strings[transfer_mode->bit_order],
+			  transfer_mode->bit_order);
 		return EXIT_FAILURE;
 	}
 
@@ -292,13 +293,13 @@ int spi_get_transfer_mode(spi_t *spi_dev, spi_transfer_cfg_t *transfer_mode)
 	}
 
 	log_debug("%s: Getting transfer mode of SPI %d:%d", __func__,
-			  spi_dev->spi_device, spi_dev->spi_slave);
+		  spi_dev->spi_device, spi_dev->spi_slave);
 
 	_spi = (spi *)spi_dev->_data;
 
 	if (ioctl(_spi->fd, SPI_IOC_RD_MODE, &read_value) == -1) {
 		log_error("%s: Unable to get SPI %d:%d transfer mode",
-				  __func__, spi_dev->spi_device, spi_dev->spi_slave);
+			  __func__, spi_dev->spi_device, spi_dev->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -364,8 +365,8 @@ int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 		return EXIT_FAILURE;
 
 	log_debug("%s: Setting bits-per-word for SPI %d:%d, bits-per-word: '%s' (%d)",
-			  __func__, spi->spi_device, spi->spi_slave, spi_bpw_strings[bpw],
-			  bpw);
+		  __func__, spi->spi_device, spi->spi_slave,
+		  spi_bpw_strings[bpw], bpw);
 
 	switch (bpw) {
 	case SPI_BPW_8:
@@ -381,8 +382,8 @@ int spi_set_bits_per_word(spi_t *spi, spi_bpw_t bpw)
 
 	if (libsoc_spi_set_bits_per_word(spi->_data, _bpw) != EXIT_SUCCESS) {
 		log_error("%s: Unable to set SPI %d:%d bits-per-word to '%s' (%d)",
-				  __func__, spi->spi_device, spi->spi_slave,
-				  spi_bpw_strings[bpw], bpw);
+			  __func__, spi->spi_device, spi->spi_slave,
+			  spi_bpw_strings[bpw], bpw);
 		return EXIT_FAILURE;
 	}
 
@@ -397,12 +398,12 @@ spi_bpw_t spi_get_bits_per_word(spi_t *spi)
 		return SPI_BPW_ERROR;
 
 	log_debug("%s: Getting bits-per-word of SPI %d:%d", __func__,
-			  spi->spi_device, spi->spi_slave);
+		  spi->spi_device, spi->spi_slave);
 
 	bpw = libsoc_spi_get_bits_per_word(spi->_data);
 	if (bpw == BPW_ERROR) {
 		log_error("%s: Unable to get SPI %d:%d bits-per-word",
-				  __func__, spi->spi_device, spi->spi_slave);
+			  __func__, spi->spi_device, spi->spi_slave);
 		return SPI_BPW_ERROR;
 	}
 
@@ -422,12 +423,12 @@ int spi_set_speed(spi_t *spi, unsigned int speed)
 	if (check_spi(spi) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	log_debug("%s: Setting SPI %d:%d speed to %dHz", __func__, spi->spi_device,
-			  spi->spi_slave, speed);
+	log_debug("%s: Setting SPI %d:%d speed to %dHz", __func__,
+		  spi->spi_device, spi->spi_slave, speed);
 
 	if (libsoc_spi_set_speed(spi->_data, speed) == EXIT_FAILURE) {
 		log_error("%s: Unable to set SPI %d:%d speed to %dHz",
-				  __func__, spi->spi_device, spi->spi_slave, speed);
+			  __func__, spi->spi_device, spi->spi_slave, speed);
 		return EXIT_FAILURE;
 	}
 
@@ -442,12 +443,12 @@ int spi_get_speed(spi_t *spi)
 		return -1;
 
 	log_debug("%s: Getting SPI %d:%d speed", __func__, spi->spi_device,
-			  spi->spi_slave);
+		  spi->spi_slave);
 
 	speed = libsoc_spi_get_speed(spi->_data);
 	if (speed == -1) {
 		log_error("%s: Unable to get SPI %d:%d speed", __func__,
-				  spi->spi_device, spi->spi_slave);
+			  spi->spi_device, spi->spi_slave);
 		return -1;
 	}
 
@@ -466,11 +467,11 @@ int spi_write(spi_t *spi, uint8_t *tx_data, unsigned int length)
 		return EXIT_SUCCESS;
 
 	log_debug("%s: Writing %d bytes to SPI %d:%d", __func__, length,
-			  spi->spi_device, spi->spi_slave);
+		  spi->spi_device, spi->spi_slave);
 
 	if (libsoc_spi_write(spi->_data, tx_data, length) != EXIT_SUCCESS) {
 		log_error("%s: Unable to write %d bytes to SPI %d:%d", __func__,
-				  length, spi->spi_device, spi->spi_slave);
+			  length, spi->spi_device, spi->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -489,11 +490,11 @@ int spi_read(spi_t *spi, uint8_t *rx_data, unsigned int length)
 		return EXIT_SUCCESS;
 
 	log_debug("%s: Reading %d bytes from SPI %d:%d", __func__, length,
-			  spi->spi_device, spi->spi_slave);
+		  spi->spi_device, spi->spi_slave);
 
 	if (libsoc_spi_read(spi->_data, rx_data, length) != EXIT_SUCCESS) {
-		log_error("%s: Unable to read %d bytes from SPI %d:%d", __func__,
-				  length, spi->spi_device, spi->spi_slave);
+		log_error("%s: Unable to read %d bytes from SPI %d:%d",
+			  __func__, length, spi->spi_device, spi->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -515,11 +516,11 @@ int spi_transfer(spi_t *spi, uint8_t *tx_data, uint8_t *rx_data, unsigned int le
 		return EXIT_SUCCESS;
 
 	log_debug("%s: Transferring %d bytes on SPI %d:%d", __func__, length,
-			  spi->spi_device, spi->spi_slave);
+		  spi->spi_device, spi->spi_slave);
 
 	if (libsoc_spi_rw(spi->_data, tx_data, rx_data, length) != EXIT_SUCCESS) {
-		log_error("%s: Unable to transfer %d bytes on SPI %d:%d", __func__,
-				  length, spi->spi_device, spi->spi_slave);
+		log_error("%s: Unable to transfer %d bytes on SPI %d:%d",
+			  __func__, length, spi->spi_device, spi->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -542,7 +543,7 @@ static int check_spi(spi_t *spi)
 
 	if (spi->_data == NULL) {
 		log_error("%s: Invalid SPI, %d:%d", __func__, spi->spi_device,
-				  spi->spi_slave);
+			  spi->spi_slave);
 		return EXIT_FAILURE;
 	}
 
@@ -563,9 +564,9 @@ static int check_transfer_mode(spi_transfer_cfg_t *transfer_mode)
 		return EXIT_FAILURE;
 	}
 
-	if (check_clock_mode(transfer_mode->clk_mode) == EXIT_FAILURE ||
-			check_chip_select(transfer_mode->chip_select) == EXIT_FAILURE ||
-			check_bit_order(transfer_mode->bit_order) == EXIT_FAILURE)
+	if (check_clock_mode(transfer_mode->clk_mode) == EXIT_FAILURE
+			|| check_chip_select(transfer_mode->chip_select) == EXIT_FAILURE
+			|| check_bit_order(transfer_mode->bit_order) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
@@ -588,7 +589,8 @@ static int check_clock_mode(spi_clk_mode_t clk_mode)
 		return EXIT_SUCCESS;
 	default:
 		log_error("%s: Invalid SPI clock mode, %d. Clock mode must be '%s', '%s', '%s', or '%s'",
-			  __func__, clk_mode, spi_clk_mode_strings[SPI_CLK_MODE_0],
+			  __func__, clk_mode,
+			  spi_clk_mode_strings[SPI_CLK_MODE_0],
 			  spi_clk_mode_strings[SPI_CLK_MODE_1],
 			  spi_clk_mode_strings[SPI_CLK_MODE_2],
 			  spi_clk_mode_strings[SPI_CLK_MODE_3]);
@@ -612,7 +614,8 @@ static int check_chip_select(spi_cs_t chip_select)
 		return EXIT_SUCCESS;
 	default:
 		log_error("%s: Invalid SPI chip select, %d. Chip select must be '%s', '%s', or '%s'",
-			  __func__, chip_select, spi_cs_strings[SPI_CS_ACTIVE_LOW],
+			  __func__, chip_select,
+			  spi_cs_strings[SPI_CS_ACTIVE_LOW],
 			  spi_cs_strings[SPI_CS_ACTIVE_HIGH],
 			  spi_cs_strings[SPI_CS_NO_CONT]);
 		return EXIT_FAILURE;

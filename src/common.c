@@ -163,8 +163,8 @@ static int config_get_csv_integer(const char * const group, const char * const a
 	char *array = NULL;
 	char *token = NULL;
 	int item = -1;
+	const char *value = conffile_get(config->conf, group, alias, NULL);
 
-	const char * value = conffile_get(config->conf, group, alias, NULL);
 	if (value == NULL)
 		return -1;
 

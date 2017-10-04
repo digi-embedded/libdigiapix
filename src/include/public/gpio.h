@@ -147,10 +147,10 @@ int gpio_free(gpio_t *gpio);
  * @mode:	Working mode to configure (gpio_mode_t).
  *
  * This function configures the given GPIO working mode to be:
- *   - An input for reading its value: GPIO_INPUT
- *   - An output for setting its value: GPIO_OUTPUT_LOW or GPIO_OUTPUT_HIGH
- *   - An interrupt trigger when there is a value change: GPIO_IRQ_EDGE_RISING,
- *     GPIO_IRQ_EDGE_FALLING, or GPIO_IRQ_EDGE_BOTH
+ *	- An input for reading its value: GPIO_INPUT
+ *	- An output for setting its value: GPIO_OUTPUT_LOW or GPIO_OUTPUT_HIGH
+ *	- An interrupt trigger when there is a value change:
+ *	  GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING, or GPIO_IRQ_EDGE_BOTH
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
@@ -162,10 +162,10 @@ int gpio_set_mode(gpio_t *gpio, gpio_mode_t mode);
  * @gpio:	A requested GPIO to get its working mode.
  *
  * This function retrieves the GPIO working mode:
- *   - An input: GPIO_INPUT
- *   - An output: GPIO_OUTPUT_LOW or GPIO_OUTPUT_HIGH
- *   - Or interrupt generation: GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING, or
- *     GPIO_IRQ_EDGE_BOTH
+ *	- An input: GPIO_INPUT
+ *	- An output: GPIO_OUTPUT_LOW or GPIO_OUTPUT_HIGH
+ *	- Or interrupt generation: GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING,
+ *	  or, GPIO_IRQ_EDGE_BOTH
  *
  * Return: The GPIO working mode (GPIO_INPUT, GPIO_OUTPUT_LOW, GPIO_OUTPUT_HIGH,
  *	   GPIO_IRQ_EDGE_RISING, GPIO_IRQ_EDGE_FALLING, GPIO_IRQ_EDGE_BOTH),
@@ -180,8 +180,8 @@ gpio_mode_t gpio_get_mode(gpio_t *gpio);
  * @value:	New GPIO value (gpio_value_t): GPIO_LOW or GPIO_HIGH.
  *
  * This function only has effect if GPIO mode is:
- *   - GPIO_OUTPUT_LOW
- *   - GPIO_OUTPUT_HIGH
+ *	- GPIO_OUTPUT_LOW
+ *	- GPIO_OUTPUT_HIGH
  *
  * If GPIO is configured as GPIO_INPUT, GPIO_IRQ_EDGE_RISING,
  * GPIO_IRQ_EDGE_FALLING, or GPIO_IRQ_EDGE_BOTH, this function returns
@@ -197,16 +197,16 @@ int gpio_set_value(gpio_t *gpio, gpio_value_t value);
  * @gpio:	A requested GPIO to read its value.
  *
  * This function only has effect if GPIO mode is:
- *   - GPIO_INPUT
- *   - GPIO_IRQ_EDGE_RISING
- *   - GPIO_IRQ_EDGE_FALLING
- *   - GPIO_IRQ_EDGE_BOTH
+ *	- GPIO_INPUT
+ *	- GPIO_IRQ_EDGE_RISING
+ *	- GPIO_IRQ_EDGE_FALLING
+ *	- GPIO_IRQ_EDGE_BOTH
  *
  * If GPIO is configured as GPIO_OUTPU_LOW or GPIO_OUTPUT_HIGH, this function
  * always returns GPIO_LOW.
  *
  * Return: The GPIO value (gpio_value_t) GPIO_LOW or GPIO_HIGH, GPIO_VALUE_ERROR
- * on error.
+ *	   on error.
  */
 gpio_value_t gpio_get_value(gpio_t *gpio);
 
@@ -214,8 +214,8 @@ gpio_value_t gpio_get_value(gpio_t *gpio);
  * gpio_set_active_mode() - Set the given GPIO active mode
  *
  * @gpio:	A requested GPIO to set its active mode.
- * @value:	New GPIO active_low value (gpio_active_mode_t): GPIO_ACTIVE_HIGH or
- *              GPIO_ACTIVE_LOW.
+ * @value:	New GPIO active_low value (gpio_active_mode_t): GPIO_ACTIVE_HIGH
+ *		or GPIO_ACTIVE_LOW.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
@@ -227,7 +227,7 @@ int gpio_set_active_mode(gpio_t *gpio, gpio_active_mode_t value);
  * @gpio:	A requested GPIO to read its active mode.
  *
  * Return: The GPIO active mode, GPIO_ACTIVE_HIGH, GPIO_ACTIVE_LOW or
- *         GPIO_ACTIVE_MODE_ERROR on error.
+ *	   GPIO_ACTIVE_MODE_ERROR on error.
  */
 gpio_active_mode_t gpio_get_active_mode(gpio_t *gpio);
 

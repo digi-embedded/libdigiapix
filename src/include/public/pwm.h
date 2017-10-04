@@ -69,8 +69,8 @@ typedef struct {
 /**
  * pwm_request() - Request a PWM to use
  *
- * @pwm_chip:	The Linux chip number of the PWM.
- * @channel:	The desired channel for the PWM.
+ * @pwm_chip:		The Linux chip number of the PWM.
+ * @channel:		The desired channel for the PWM.
  * @request_mode:	Request mode for opening the PWM (request_mode_t).
  *
  * This function returns a pwm_t pointer. Memory for the 'struct' is obtained
@@ -78,23 +78,23 @@ typedef struct {
  *
  * Return: A pointer to 'pwm_t' on success, NULL on error.
  */
-pwm_t* pwm_request(unsigned int pwm_chip, unsigned int channel, request_mode_t request_mode);
+pwm_t *pwm_request(unsigned int pwm_chip, unsigned int channel, request_mode_t request_mode);
 
 /**
  * pwm_request_by_alias() - Request a PWM to use using its alias name
  *
- * @pwm_alias:	The alias name of the PWM to request.
+ * @pwm_alias:		The alias name of the PWM to request.
  * @request_mode:	Request mode for opening the PWM (request_mode_t).
  *
  * This function returns a pwm_t pointer. Memory for the 'struct' is obtained
  * with 'malloc' and must be freed with 'pwm_free()'.
  *
  * The alias in the configuration file has the following format:
- *			<alias_name> = <pwm_chip_number>,<pwm_channel_number>
+ *	<alias_name> = <pwm_chip_number>,<pwm_channel_number>
  *
  * Return: A pointer to 'pwm_t' on success, NULL on error.
  */
-pwm_t* pwm_request_by_alias(char const * const pwm_alias, request_mode_t request_mode);
+pwm_t *pwm_request_by_alias(char const * const pwm_alias, request_mode_t request_mode);
 
 /**
  * pwm_get_chip() - Get the PWM chip of a given alias
@@ -117,7 +117,8 @@ int pwm_get_chip(char const * const pwm_alias);
 int pwm_get_channel(char const * const pwm_alias);
 
 /**
- * pwm_get_number_of_channels() - Get the number of PWM channels that the given chip supports
+ * pwm_get_number_of_channels() - Get the number of PWM channels that the given
+ *				  chip supports
  *
  * @pwm_chip:	The Linux chip number of the PWM.
  *
@@ -126,7 +127,8 @@ int pwm_get_channel(char const * const pwm_alias);
 int pwm_get_number_of_channels(unsigned int pwm_chip);
 
 /**
- * pwm_get_number_of_channels_by_alias() - Get the number of PWM channels that the given chip supports
+ * pwm_get_number_of_channels_by_alias() - Get the number of PWM channels that
+ *					   the given chip supports
  *
  * @pwm_alias:	The alias of the PWM.
  *
@@ -193,11 +195,12 @@ pwm_config_error_t pwm_set_period(pwm_t *pwm, unsigned int period);
 int pwm_get_period(pwm_t *pwm);
 
 /**
- * pwm_set_duty_cycle_percentage() - Change the duty cycle percentage of a PWM signal
+ * pwm_set_duty_cycle_percentage() - Change the duty cycle percentage of a PWM
+ *				     signal
  *
  * @pwm:	A requested PWM to set the duty cycle.
  * @percentage:	The duty cycle percentage of the signal (0 to 100).
- * 
+ *
  * Return: PWM_CONFIG_ERROR_NONE on success, PWM_CONFIG_ERROR_INVALID for an
  *	   invalid duty cycle, or PWM_CONFIG_ERROR on error.
  */
@@ -261,12 +264,12 @@ int pwm_set_polarity(pwm_t *pwm, pwm_polarity_t polarity);
  * @pwm:	A requested PWM to get the polarity.
  *
  * This function retrieves the polarity of the give PWM:
- *	 - Normal polarity: PWM_NORMAL
- *	 - Inverted polarity: PWM_INVERSED
- *	 - Error retrieving the value: PWM_POLARITY_ERROR
+ *	- Normal polarity: PWM_NORMAL
+ *	- Inverted polarity: PWM_INVERSED
+ *	- Error retrieving the value: PWM_POLARITY_ERROR
  *
  * Return: The PWM polarity (PWM_NORMAL, PWM_INVERSED), PWM_POLARITY_ERROR if it
- *	  cannot be retrieved.
+ *	   cannot be retrieved.
  */
 pwm_polarity_t pwm_get_polarity(pwm_t *pwm);
 
@@ -277,8 +280,8 @@ pwm_polarity_t pwm_get_polarity(pwm_t *pwm);
  * @enabled:	pwm_enabled_t with the value to set.
  *
  * This function enable or disable the PWM channel:
- *	 - Enable the PWM channel: PWM_ENABLED
- *	 - Disable the PWM channel: PWM_DISABLED
+ *	- Enable the PWM channel: PWM_ENABLED
+ *	- Disable the PWM channel: PWM_DISABLED
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
@@ -290,7 +293,7 @@ int pwm_enable(pwm_t *pwm, pwm_enabled_t enabled);
  * @pwm:	A requested PWM to check.
  *
  * Return: The PWM status (PWM_ENABLED, PWM_DISABLED), PWM_ENABLED_ERROR if it
- * cannot be retrieved.
+ *	   cannot be retrieved.
  */
 pwm_enabled_t pwm_is_enabled(pwm_t *pwm);
 

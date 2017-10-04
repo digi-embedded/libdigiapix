@@ -87,7 +87,7 @@ int i2c_get_bus(const char * const i2c_alias);
  * This function returns in 'buses' the available Linux I2C bus indexes.
  *
  * Memory for the 'buses' pointer is obtained with 'malloc' and must be
- * freed only when return value is > 0
+ * freed only when return value is > 0.
  *
  * Return: The number of available I2C buses, -1 on error.
  */
@@ -121,48 +121,53 @@ int i2c_set_retries(i2c_t *i2c_dev, unsigned int retry);
  * i2c_read() - Read data from the I2C slave device
  *
  * @i2c_dev:		A requested I2C bus to read from.
- * @i2c_address:	Address of the I2C slave device to read from
- * @buffer:		A pointer to the read buffer
- * @len:		Length of the data that should be read over the I2C bus
+ * @i2c_address:	Address of the I2C slave device to read from.
+ * @buffer:		A pointer to the read buffer.
+ * @length:		Length of the data that should be read over the I2C bus.
  *
- * This function reads data from a I2C device connected to the requested I2C bus.
+ * This function reads data from a I2C device connected to the requested I2C
+ * bus.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_read(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer, uint16_t len);
+int i2c_read(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
 
 /**
  * i2c_write() - Send data to an I2C slave device
  *
  * @i2c_dev:		A requested I2C bus to write from.
- * @i2c_address:	Address of the I2C slave device to write to
- * @buffer:		A pointer to the write buffer
- * @len:		Length of the data that should be written over the I2C bus
+ * @i2c_address:	Address of the I2C slave device to write to.
+ * @buffer:		A pointer to the write buffer.
+ * @length:		Length of the data that should be written over the I2C
+ *			bus.
  *
- * This function writes data from a I2C device connected to the requested I2C bus.
+ * This function writes data from a I2C device connected to the requested I2C
+ * bus.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int i2c_write(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer, uint16_t len);
+int i2c_write(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer, uint16_t length);
 
 /**
  * i2c_transfer() - Transfer data with an the I2C slave device
  *
  * @i2c_dev:		A requested I2C bus to transfer to/from.
- * @i2c_address:	Address of the I2C slave device to transfer data with
+ * @i2c_address:	Address of the I2C slave device to transfer data with.
  * @buffer_to_write:	A pointer to the data should be written to the I2C
- * 			device
- * @w_len:		Length of the data that should be written over the I2C bus
- * @buffer_to_read:	A pointer to the data should be read from the I2C device
- * @r_len:		Length of the data that should be read over the I2C bus
+ *			device.
+ * @w_length:		Length of the data that should be written over the I2C
+ *			bus.
+ * @buffer_to_read:	A pointer to the data should be read from the I2C
+ *			device.
+ * @r_length:		Length of the data that should be read over the I2C bus.
  *
- * This function transfers data to and from a I2C device connected to the requested
- * I2C bus.
+ * This function transfers data to and from a I2C device connected to the
+ * requested I2C bus.
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
 int i2c_transfer(i2c_t *i2c_dev, unsigned int i2c_address, uint8_t *buffer_to_write,
-		uint16_t w_len, uint8_t *buffer_to_read, uint16_t r_len);
+		uint16_t w_length, uint8_t *buffer_to_read, uint16_t r_length);
 
 #ifdef __cplusplus
 }
