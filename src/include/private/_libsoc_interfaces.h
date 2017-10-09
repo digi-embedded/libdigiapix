@@ -18,6 +18,10 @@
 #ifndef _LIBSOC_INTERFACES_H_
 #define _LIBSOC_INTERFACES_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <libsoc_gpio.h>
 #include <libsoc_i2c.h>
 #include <libsoc_pwm.h>
@@ -45,5 +49,9 @@ typedef shared_mode libsoc_shared_mode_t;
 typedef spi libsoc_spi_t;
 typedef spi_bpw libsoc_spi_bpw_t;
 typedef spi_mode libsoc_spi_mode_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _LIBSOC_INTERFACES_H_ */
