@@ -81,6 +81,16 @@ int config_get_i2c_bus(const char * const alias)
 	return conffile_get_int(config->conf, "I2C", alias, -1);
 }
 
+int config_get_adc_chip_number(const char * const alias)
+{
+	return config_get_csv_integer("ADC", alias, 0);
+}
+
+int config_get_adc_channel_number(const char * const alias)
+{
+	return config_get_csv_integer("ADC", alias, 1);
+}
+
 int check_request_mode(request_mode_t request_mode)
 {
 	switch (request_mode) {

@@ -83,6 +83,24 @@ int config_get_spi_device_number(const char * const alias);
 int config_get_spi_slave_number(const char * const alias);
 
 /**
+ * config_get_adc_chip_number() - Find the ADC chip number of a given alias
+ *
+ * @alias: The ADC alias.
+ *
+ * Return: The ADC device chip, -1 on error.
+ */
+int config_get_adc_chip_number(const char * const alias);
+
+/**
+ * config_get_adc_channel_number() - Find the ADC channel number of a given alias
+ *
+ * @alias: The ADC alias.
+ *
+ * Return: The ADC channel number, -1 on error.
+ */
+int config_get_adc_channel_number(const char * const alias);
+
+/**
  * config_get_i2c_bus() - Find the I2C Linux bus id of an alias
  *
  * @alias:	The I2C alias.
