@@ -172,6 +172,7 @@ static int config_get_csv_integer(const char * const group, const char * const a
 {
 	char *array = NULL;
 	char *token = NULL;
+	int item_index = 0;
 	int item = -1;
 	const char *value = conffile_get(config->conf, group, alias, NULL);
 
@@ -181,12 +182,12 @@ static int config_get_csv_integer(const char * const group, const char * const a
 	array = strdup(value);
 	if (array == NULL)
 		return -1;
+	token = strtok(array, ",");
 
-	while (index > -1) {
-		token = strtok(array, ",");
-		if (token == NULL)
-			break;
-		index--;
+	/* Walk through other tokens */
+	while (token && (item_index < index)) {
+		token = strtok(NULL, ",");
+		item_index++;
 	}
 
 	if (token != NULL)
