@@ -222,12 +222,12 @@ float ldx_adc_convert_sample_to_mv(adc_t *adc, int sample)
 {
 	adc_internal_t *_adc = NULL;
 	_adc = (adc_internal_t *) adc->_data;
-	if (sample *_adc->scale <= 0) {
+	if (sample * _adc->scale < 0) {
 		log_error("%s: Scale should be a number greater than 0", __func__);
 		return -1;
 	}
 
-	return sample *_adc->scale;
+	return sample * _adc->scale;
 
 }
 void *ldx_sampling_callback_thread(void *callback_adc)
