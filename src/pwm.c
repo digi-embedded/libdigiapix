@@ -15,6 +15,7 @@
  * =======================================================================
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,26 +129,34 @@ int ldx_pwm_get_channel(char const * const pwm_alias)
 
 int ldx_pwm_get_number_of_channels(unsigned int pwm_chip)
 {
-	int fd;
+	int fd, nbytes;
 	char path[BUFF_SIZE];
 	char channels[5];
+	long nchan = -1;
 
 	log_debug("%s: Getting number of channels of PWM %d", __func__, pwm_chip);
 
 	sprintf(path, "/sys/class/pwm/pwmchip%d/npwm", pwm_chip);
-
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
-	if (read(fd, channels, 5) < 0) {
-		close(fd);
-		return -1;
-	}
+	nbytes = read(fd, channels, sizeof(channels) - 1);
+	if (nbytes < 0)
+		goto err_out;
+	/* Remove newline character read from the sysfs */
+	channels[nbytes - 1] = 0;
 
+	errno = 0;
+	nchan = strtol(channels, NULL, 10);
+	if ((errno == ERANGE && (nchan == LONG_MAX || nchan == LONG_MIN))
+	    || (errno != 0 && nchan == 0))
+		nchan = -1;
+
+err_out:
 	close(fd);
 
-	return atoi(channels);
+	return (int)nchan;
 }
 
 int ldx_pwm_get_number_of_channels_by_alias(char const * const pwm_alias)
