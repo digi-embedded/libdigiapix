@@ -108,7 +108,7 @@ int ldx_i2c_list_available_buses(uint8_t **buses)
 		return 0;
 
 	*buses = (uint8_t *)calloc(next, sizeof(uint8_t));
-	if (buses == NULL) {
+	if (*buses == NULL) {
 		log_error("%s: Could not allocate memory to list buses", __func__);
 		return -1;
 	}
