@@ -15,9 +15,11 @@
  * =======================================================================
  */
 
+#include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -107,14 +109,14 @@ adc_t *ldx_adc_request(unsigned int adc_chip, unsigned int adc_channel)
 
 adc_t *ldx_adc_request_by_alias(char const * const adc_alias)
 {
-	unsigned int adc_channel, adc_chip;
+	int adc_channel, adc_chip;
 	adc_t *new_adc = NULL;
 
 	log_debug("%s: Requesting ADC '%s'", __func__, adc_alias);
 
 	adc_channel = ldx_adc_get_channel(adc_alias);
 	adc_chip = ldx_adc_get_chip(adc_alias);
-	if (adc_channel == -1 || adc_chip == -1) {
+	if (adc_channel < 0 || adc_chip < 0) {
 		log_error("%s: Invalid ADC alias, '%s'", __func__, adc_alias);
 		return NULL;
 	}
@@ -186,29 +188,33 @@ int ldx_adc_get_channel(char const * const adc_alias)
 int ldx_adc_get_sample(adc_t *adc)
 {
 	char value[BUFF_SIZE];
-	int int_value = 0;
+	int int_value = 0, nbytes;
 	adc_internal_t *_adc = NULL;
-
-	_adc = (adc_internal_t *) adc->_data;
 
 	if (adc == NULL) {
 		log_error("%s: ADC cannot be NULL", __func__);
 		return -1;
 	}
 
+	_adc = (adc_internal_t *) adc->_data;
+
 	log_info("%s: Reading ADC value.", __func__);
 
 	/* We need to restart the pointer in each read */
 	lseek(_adc->input_fd, 0, SEEK_SET);
 
-	if (read(_adc->input_fd, value, strlen(value) + 1) < 0) {
+	nbytes = read(_adc->input_fd, value, sizeof(value) - 1);
+	if (nbytes < 0) {
 		log_error("%s: Error reading input", __func__);
 		return -1;
 	}
+	/* Remove newline character read from the sysfs */
+	value[nbytes - 1] = 0;
 
-	int_value = atoi(value);
-	/* Do not return negative ADC values. */
-	if (int_value < 0) {
+	errno = 0;
+	int_value = strtol(value, NULL, 10);
+	if ((errno == ERANGE && (int_value == LONG_MAX || int_value == LONG_MIN))
+	    || (errno != 0 && int_value == 0)) {
 		log_error("%s: ADC value can't be lower than 0", __func__);
 		return -1;
 	}
@@ -352,28 +358,36 @@ int ldx_adc_start_sampling(adc_t *adc, const ldx_adc_read_cb_t read_cb,
 static float get_scale(adc_driver_t driver_type, unsigned int adc_chip)
 {
 	char scale_path[BUFF_SIZE];
-	char value[10];
+	char value[16];		/* Enough for values reported in the sysfs */
 	float scale_factor = -1;
-	int fd;
+	int fd, nbytes;
 
 	if (driver_type == ADC_DRIVER_IIO) {
 		sprintf(scale_path, "/sys/bus/iio/devices/iio:device%d/in_voltage_scale"
 				, adc_chip);
 		fd = open(scale_path, O_SYNC | O_RDONLY);
-		if (fd <= 0) {
+		if (fd < 0) {
 			log_error("%s: Unable to find the scale for the ADC chip: %d\n"
 					, __func__, adc_chip);
 			return -1;
 		}
-		read(fd, value, 10);
+
+		nbytes = read(fd, value, sizeof(value) - 1);
+		if (nbytes < 0) {
+			log_error("%s: Error reading scale factor", __func__);
+			close(fd);
+			return -1;
+		}
+		/* Remove newline character read from the sysfs */
+		value[nbytes - 1] = 0;
+
 		scale_factor = atof(value);
 		if (close(fd) < 0) {
 			log_error("%s: Error closing input file", __func__);
 			return -1;
 		}
-	}
-	if (driver_type == ADC_DRIVER_HWMON) {
-	/* In this driver we read directly in mV so the scale factor is 1 */
+	} else if (driver_type == ADC_DRIVER_HWMON) {
+		/* In this driver we read directly in mV so the scale factor is 1 */
 		scale_factor = 1;
 	}
 
