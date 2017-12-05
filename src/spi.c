@@ -158,7 +158,7 @@ int ldx_spi_list_available_devices(uint8_t **devices)
 		return 0;
 
 	*devices = (uint8_t *)calloc(count, sizeof(uint8_t));
-	if (devices == NULL) {
+	if (*devices == NULL) {
 		log_error("%s: Could not allocate memory to list devices", __func__);
 		return -1;
 	}
@@ -187,7 +187,7 @@ int ldx_spi_list_available_slaves(uint8_t spi_device, uint8_t **slaves)
 		return 0;
 
 	*slaves = (uint8_t *)calloc(count, sizeof(uint8_t));
-	if (slaves == NULL) {
+	if (*slaves == NULL) {
 		log_error("%s: Could not allocate memory to list slaves", __func__);
 		return -1;
 	}
