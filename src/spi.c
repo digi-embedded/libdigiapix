@@ -28,8 +28,9 @@
 #include "_log.h"
 #include "spi.h"
 
-#define MAX_SPI_DEVICES		5
+#define MAX_SPI_DEVICES		10
 #define MAX_SPI_SLAVES		5
+#define HIGH_SPI_BASE		32766
 
 #define M(x)	#x,
 static const char * const spi_clk_mode_strings[] = {
@@ -139,14 +140,20 @@ int ldx_spi_get_slave(char const * const spi_alias)
 int ldx_spi_list_available_devices(uint8_t **devices)
 {
 	uint8_t i, count = 0;
-	uint8_t _devices[MAX_SPI_DEVICES] = {0};
+	uint16_t _devices[MAX_SPI_DEVICES] = {0};
 	glob_t globresults;
 	char path[20];
 
-	for (i = 0; i < MAX_SPI_DEVICES; i++) {
+	for (i = 0; i < MAX_SPI_DEVICES / 2; i++) {
 		sprintf(path, "/dev/spidev%d.*", i);
 		if (glob(path, 0, NULL, &globresults) == 0) {
 			_devices[count] = i;
+			count++;
+		}
+
+		sprintf(path, "/dev/spidev%d.*", HIGH_SPI_BASE - i);
+		if (glob(path, 0, NULL, &globresults) == 0) {
+			_devices[count] = HIGH_SPI_BASE - i;
 			count++;
 		}
 	}
