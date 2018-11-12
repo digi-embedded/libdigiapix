@@ -6,6 +6,7 @@ ConnectCore platform interfaces.
 Supported interfaces:
 
   * ADC
+  * CAN
   * GPIO
   * I2C
   * PWM

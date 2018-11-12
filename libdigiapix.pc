@@ -7,7 +7,7 @@ Name: libdigiapix
 Description: Digi APIX library
 Version: 1.0
 
-Requires.private: libsoc
+Requires.private: libsoc libsocketcan
 Libs: -L${libdir} -ldigiapix
-Libs.private: -lsoc
+Libs.private: -lsoc -lsocketcan
 Cflags: -I${includedir}/libdigiapix -I${includedir}
