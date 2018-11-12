@@ -55,6 +55,24 @@ extern "C" {
 	syslog(LOG_ERR, "[ERROR] " format, __VA_ARGS__)
 
 /**
+ * log_warning() - Log the given message as warning
+ *
+ * @format:	   Warning message to log.
+ * @args:	   Additional arguments.
+ */
+#define log_warning(format, ...)					\
+	syslog(LOG_WARNING, "[WARNING] " format, __VA_ARGS__)
+
+/**
+ * log_notice() - Log the given message as notice
+ *
+ * @format:	  Notice message to log.
+ * @args:	  Additional arguments.
+ */
+#define log_notice(format, ...)					\
+	syslog(LOG_NOTICE, "[NOTICE] " format, __VA_ARGS__)
+
+/**
  * log_info() - Log the given message as info
  *
  * @format:	Info message to log.
