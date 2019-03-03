@@ -197,6 +197,33 @@ int ldx_gpio_free(gpio_t *gpio)
 	return ret;
 }
 
+int ldx_gpio_set_debounce(gpio_t *gpio, unsigned int debounce)
+{
+	char buf[BUFF_SIZE];
+	int fd, ret = EXIT_SUCCESS;
+
+	if (check_gpio(gpio) != EXIT_SUCCESS)
+		return EXIT_FAILURE;
+
+	log_debug("%s: Setting debounce for GPIO %d to: '%u'", __func__,
+		  gpio->kernel_number, debounce);
+
+	sprintf(buf, "/sys/class/gpio/gpio%d/debounce", gpio->kernel_number);
+
+	fd = open(buf, O_SYNC | O_WRONLY);
+	if (fd < 0)
+		return EXIT_FAILURE;
+
+	sprintf(buf, "%u", debounce);
+
+	if (write(fd, buf, strlen(buf)) != strlen(buf))
+		ret = EXIT_FAILURE;
+
+	close(fd);
+
+	return ret;
+}
+
 int ldx_gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 {
 	int ret = EXIT_FAILURE;

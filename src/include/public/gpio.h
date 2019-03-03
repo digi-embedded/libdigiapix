@@ -140,6 +140,18 @@ int ldx_gpio_get_kernel_number(const char * const gpio_alias);
 int ldx_gpio_free(gpio_t *gpio);
 
 /**
+ * ldx_gpio_set_debounce() - Set debounce time for the given GPIO
+ *
+ * @gpio:	A requested GPIO to set its debounce time.
+ * debounce:	Debounce time in microseconds.
+ *
+ * This function configures the debounce time in microseconds for a given GPIO.
+ *
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
+ */
+int ldx_gpio_set_debounce(gpio_t *gpio, unsigned int debounce);
+
+/**
  * ldx_gpio_set_mode() - Change the given GPIO working mode
  *
  * @gpio:	A requested GPIO to set its working mode.
