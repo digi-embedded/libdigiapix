@@ -70,9 +70,11 @@ typedef struct can_if_cfg {
 	int			rx_buf_len_rd;
 	int			tx_buf_len_rd;
 	uint32_t		bitrate;
+	uint32_t		dbitrate;
 	uint32_t		restart_ms;
 	can_err_mask_t		error_mask;
 	struct can_bittiming	bit_timing;
+	struct can_bittiming	dbit_timing;
 	struct can_ctrlmode	ctrl_mode;
 } can_if_cfg_t;
 
@@ -230,6 +232,19 @@ int ldx_can_restart(const can_if_t *cif);
 int ldx_can_set_bit_timing(can_if_t *cif, struct can_bittiming *bt);
 
 /**
+ * ldx_can_set_data_bit_timing() - set the data bit timing of the specified interface
+ *
+ * @cif:	The pointer to the CAN interface to configure.
+ * @dbt:	Pointer to the can_bittiming structure with the configuration.
+ *
+ * This function sets the data bit timing configuration of the specified CAN
+ * interface.
+ *
+ * Return: CAN_ERR_NONE on success, error code otherwise.
+ */
+int ldx_can_set_data_bit_timing(can_if_t *cif, struct can_bittiming *dbt);
+
+/**
  * ldx_can_request() - request a CAN interface by index
  *
  * @can_iface:	The CAN interface index.
@@ -299,6 +314,16 @@ int ldx_can_init(can_if_t *cif, can_if_cfg_t *cfg);
  * Return: CAN_ERR_NONE on success, error code otherwise.
  */
 int ldx_can_set_bitrate(can_if_t *cif, uint32_t bitrate);
+
+/**
+ * ldx_can_set_data_bitrate() - Set the data bitrate in the CAN interface
+ *
+ * @cif:	A pointer to the requested CAN to configure.
+ * @dbitrate:	The data bitrate to configure.
+ *
+ * Return: CAN_ERR_NONE on success, error code otherwise.
+ */
+int ldx_can_set_data_bitrate(can_if_t *cif, uint32_t dbitrate);
 
 /**
  * ldx_can_set_ctrlmode() - Set the control mode in the CAN interface

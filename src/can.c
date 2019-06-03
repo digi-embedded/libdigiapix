@@ -124,8 +124,9 @@ void ldx_can_set_defconfig(can_if_cfg_t *cfg)
 	cfg->process_header	= true;
 	cfg->hw_timestamp	= false;
 	cfg->bitrate		= LDX_CAN_INVALID_BITRATE;
+	cfg->dbitrate		= LDX_CAN_INVALID_BITRATE;
 	cfg->restart_ms		= LDX_CAN_INVALID_RESTART_MS;
-	cfg->ctrl_mode.mask		= LDX_CAN_UNCONFIGURED_MASK;
+	cfg->ctrl_mode.mask	= LDX_CAN_UNCONFIGURED_MASK;
 	cfg->error_mask		= CAN_ERR_TX_TIMEOUT |
 				  CAN_ERR_CRTL |
 				  CAN_ERR_BUSOFF |
@@ -360,9 +361,18 @@ int ldx_can_init(can_if_t *cif, can_if_cfg_t *cfg)
 	pdata = cif->_data;
 	cif->cfg = *cfg;
 
-	/* Set birate if required */
+	/* Set bitrate if required */
 	if (cfg->bitrate != LDX_CAN_INVALID_BITRATE) {
 		ret = ldx_can_set_bitrate(cif, cfg->bitrate);
+		if (ret)
+			return ret;
+
+		cif->cfg.bitrate = cfg->bitrate;
+	}
+
+	/* Set data bitrate if required */
+	if (cfg->dbitrate != LDX_CAN_INVALID_BITRATE) {
+		ret = ldx_can_set_data_bitrate(cif, cfg->dbitrate);
 		if (ret)
 			return ret;
 

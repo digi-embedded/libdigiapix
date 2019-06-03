@@ -217,6 +217,39 @@ int ldx_can_set_bitrate(can_if_t *cif, uint32_t bitrate)
 	return CAN_ERROR_NONE;
 }
 
+int ldx_can_set_data_bitrate(can_if_t *cif, uint32_t dbitrate)
+{
+	int ret;
+	struct can_bittiming dbt;
+
+	if (!cif)
+		return -CAN_ERROR_NULL_INTERFACE;
+
+	ret = can_set_data_bitrate(cif->name, dbitrate);
+	if (ret) {
+		log_error("%s: Unable to set data bitrate to %u",
+			  __func__, dbitrate);
+		return -CAN_ERROR_NL_BITRATE;
+	}
+
+	if (cif->cfg.nl_cmd_verify) {
+		ret = can_get_data_bittiming(cif->name, &dbt);
+		if (ret) {
+			log_error("%s: Unable to get %s bit timing info",
+				  __func__, cif->name);
+			return -CAN_ERROR_NL_GET_BIT_TIMING;
+		}
+
+		if (dbt.bitrate != dbitrate) {
+			log_error("%s: on %s data bitrate set does not match data bitrate read",
+				  __func__, cif->name);
+			return -CAN_ERROR_NL_BR_MISSMATCH;
+		}
+	}
+
+	return CAN_ERROR_NONE;
+}
+
 int ldx_can_set_restart_ms(can_if_t *cif, uint32_t restart_ms)
 {
 	int ret;
@@ -273,6 +306,40 @@ int ldx_can_set_bit_timing(can_if_t *cif, struct can_bittiming *bt)
 		ret = memcmp(bt, &bt_read, sizeof(bt_read));
 		if (ret) {
 			log_error("%s: on %s bit timing set does not match bit timing read",
+				  __func__, cif->name);
+			return -CAN_ERROR_NL_BT_MISSMATCH;
+		}
+	}
+
+	return CAN_ERROR_NONE;
+}
+
+int ldx_can_set_data_bit_timing(can_if_t *cif, struct can_bittiming *dbt)
+{
+	int ret;
+	struct can_bittiming dbt_read;
+
+	if (!cif)
+		return -CAN_ERROR_NULL_INTERFACE;
+
+	ret = can_set_data_bittiming(cif->name, dbt);
+	if (ret) {
+		log_error("%s: Unable to set data bit timing on %s",
+			  __func__, cif->name);
+		return -CAN_ERROR_NL_SET_BIT_TIMING;
+	}
+
+	if (cif->cfg.nl_cmd_verify) {
+		ret = can_get_data_bittiming(cif->name, &dbt_read);
+		if (ret) {
+			log_error("%s: Unable to get %s data bit timing info",
+				  __func__, cif->name);
+			return -CAN_ERROR_NL_GET_BIT_TIMING;
+		}
+
+		ret = memcmp(dbt, &dbt_read, sizeof(dbt_read));
+		if (ret) {
+			log_error("%s: on %s data bit timing set does not match bit timing read",
 				  __func__, cif->name);
 			return -CAN_ERROR_NL_BT_MISSMATCH;
 		}
