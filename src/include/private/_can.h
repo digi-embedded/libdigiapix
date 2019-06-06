@@ -22,11 +22,11 @@ extern "C" {
 #endif
 
 /*
- * Define CAN_NETLINK_H to avoid 'libsocketcan.h' including
+ * Define _UAPI_CAN_NETLINK_H to avoid 'libsocketcan.h' including
  * the libsocketcan specific 'can_netlink.h' and use the standard
  * 'linux/can/netlink.h' header
  */
-#define CAN_NETLINK_H
+#define _UAPI_CAN_NETLINK_H
 #include <libsocketcan.h>
 #include "_list.h"
 
