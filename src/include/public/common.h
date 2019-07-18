@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Digi International Inc.
+ * Copyright 2017-2019, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -44,6 +44,16 @@ typedef enum {
 			 * fail. It will always be unexported on free.
 			 */
 } request_mode_t;
+
+/**
+ * platform_t - Defined Digi platforms
+ */
+typedef enum {
+	INVALID_PLATFORM = -1,
+	CC8X_PLATFORM,
+	CC6_PLATFORM,
+	CC6UL_PLATFORM,
+} digi_platform_t;
 
 #ifdef __cplusplus
 }

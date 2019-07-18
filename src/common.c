@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Digi International Inc.
+ * Copyright 2017-2019, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#define _GNU_SOURCE
+
+#include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -23,6 +27,13 @@
 #include "common.h"
 
 #define DEFAULT_DIGIAPIX_CFG_FILE	"/etc/libdigiapix.conf"
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define PLATFORM_PATH				"/proc/device-tree/compatible"
+
+#define CC8X_PLATFORM_STRING		"imx8"
+#define CC6UL_PLATFORM_STRING		"imx6ul"
+#define CC6_PLATFORM_STRING			"imx6q"
+#define CC6DL_PLATFORM_STRING 		"imx6dl"
 
 static void __attribute__ ((constructor(101))) digiapix_init(void);
 static void __attribute__ ((destructor(101))) digiapix_fini(void);
@@ -195,4 +206,151 @@ static int config_get_csv_integer(const char * const group, const char * const a
 	free(array);
 
 	return item;
+}
+
+
+/**
+ * get_cmd_output() - Execute the given command and return the output
+ *
+ * @cmd:	Command to be executed.
+ *
+ * Return: The first output line of the command execution.
+ */
+char *get_cmd_output(const char *cmd)
+{
+	FILE *in;
+	char buff[512], *pbuf = NULL;
+
+	in = popen(cmd, "r");
+	if (!in)
+		return NULL;
+
+	pbuf = fgets(buff, ARRAY_SIZE(buff), in);
+	if (pbuf)
+		buff[strlen(buff) - 1] = '\0';
+
+	pclose(in);
+
+	if (pbuf)
+		return strdup(buff);
+
+	return pbuf;
+}
+
+/**
+ * write_file() - Write a formatted string to the given file
+ *
+ * @path:	Full file path.
+ * @format:	File name.
+ *
+ * Return: 0 if the string was successfully written, 1 otherwise.
+ */
+int write_file(const char *path, const char *format, ...)
+{
+	va_list argp;
+	FILE *f = NULL;
+	int len;
+
+	f = fopen(path, "w");
+	if (f == NULL)
+		return 1;
+
+	va_start(argp, format);
+
+	len = vfprintf(f, format, argp);
+	fclose(f);
+
+	va_end(argp);
+
+	if (len < 0)
+		return 1;
+
+	return 0;
+}
+
+/**
+ * concat_path() - Concatenate directory path and file name
+ *
+ * @dir:	Directory path.
+ * @file:	File name.
+ *
+ * Concatenate the given directory path and file name, and returns a pointer to
+ * a new string with the result. If the given directory path does not finish
+ * with a '/' it is automatically added.
+ *
+ * Memory for the new string is obtained with 'malloc' and can be freed with
+ * 'free'.
+ *
+ * Return: A pointer to a new string with the concatenation or NULL if both
+ *	   'dir' and 'file' are NULL.
+ */
+char *concat_path(const char *dir, const char *file)
+{
+	char *result = NULL;
+	int len;
+
+	if (dir == NULL && file == NULL)
+		return result;
+
+	if (dir == NULL && file != NULL)
+		return strdup(file);
+
+	len = strlen(dir) + (file == NULL ? 0 : strlen(file)) + 1;
+	if (dir[strlen(dir) - 1] != '/')
+		len++;
+
+	result = malloc(sizeof(*result) * len);
+	if (result == NULL)
+		return NULL;
+
+	strcpy(result, dir);
+
+	if (dir[strlen(dir) - 1] != '/') {
+		result[strlen(dir)] = '/';
+		result[strlen(dir) + 1] = '\0';
+	}
+
+	if (file != NULL)
+		strncat(result, file, len - strlen(result) - 1);
+
+	return result;
+}
+
+/**
+ * get_digi_platform() - Return the Digi platform
+ *
+ * Return: a digi_platform_t
+ */
+digi_platform_t get_digi_platform()
+{
+	char *cmd_output = NULL;
+	char *cmd;
+	digi_platform_t platform = INVALID_PLATFORM;
+
+	asprintf(&cmd, READ_PATH, PLATFORM_PATH);
+	if (!cmd) {
+		log_error("%s: Unable to allocate memory for the command", __func__);
+		return INVALID_PLATFORM;
+	}
+
+	cmd_output = get_cmd_output(cmd);
+	if (cmd_output == NULL) {
+		log_error("%s: Unable to get the current platform",
+			  __func__);
+		free(cmd);
+		return INVALID_PLATFORM;
+	}
+
+	if (strstr(cmd_output , CC6UL_PLATFORM_STRING) != NULL)
+		platform = CC6UL_PLATFORM;
+	else if (strstr(cmd_output, CC8X_PLATFORM_STRING) != NULL)
+		platform = CC8X_PLATFORM;
+	else if (strstr(cmd_output, CC6_PLATFORM_STRING) != NULL ||
+			strstr(cmd_output, CC6DL_PLATFORM_STRING))
+		platform = CC6_PLATFORM;
+
+	free(cmd);
+	free(cmd_output);
+
+	return platform;
 }

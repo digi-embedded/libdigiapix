@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Digi International Inc.
+ * Copyright 2017-2019, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,6 +24,8 @@ extern "C" {
 #include <libsoc_board.h>
 
 #include "common.h"
+
+#define READ_PATH					"cat %s"
 
 /**
  * config_check_alias() - Verifies the alias is valid
@@ -116,6 +118,50 @@ int config_get_i2c_bus(const char * const alias);
  * Return: EXIT_SUCCESS if the mode is valid, EXIT_FAILURE otherwise.
  */
 int check_request_mode(request_mode_t request_mode);
+
+/**
+ * get_cmd_output() - Execute the given command and return the output
+ *
+ * @cmd:	Command to be executed.
+ *
+ * Return: The first output line of the command execution.
+ */
+char *get_cmd_output(const char *cmd);
+
+/**
+ * write_file() - Write a formatted string to the given file
+ *
+ * @path:	Full file path.
+ * @format:	File name.
+ *
+ * Return: 0 if the string was successfully written, 1 otherwise.
+ */
+int write_file(const char *path, const char *format, ...);
+
+/**
+ * get_digi_platform() - Return the Digi Platform
+ *
+ * Return: The Digi platform digi_platform_t type.
+ */
+digi_platform_t get_digi_platform();
+
+/**
+ * concat_path() - Concatenate directory path and file name
+ *
+ * @dir:	Directory path.
+ * @file:	File name.
+ *
+ * Concatenate the given directory path and file name, and returns a pointer to
+ * a new string with the result. If the given directory path does not finish
+ * with a '/' it is automatically added.
+ *
+ * Memory for the new string is obtained with 'malloc' and can be freed with
+ * 'free'.
+ *
+ * Return: A pointer to a new string with the concatenation or NULL if both
+ *	   'dir' and 'file' are NULL.
+ */
+char *concat_path(const char *dir, const char *file);
 
 #ifdef __cplusplus
 }
