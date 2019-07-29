@@ -310,7 +310,7 @@ int ldx_spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
 	}
 
 	/* Determine the clock mode */
-	switch (read_value & SPI_MODE_3) {
+	switch (read_value) {
 	case SPI_MODE_0:
 		transfer_mode->clk_mode = SPI_CLK_MODE_0;
 		break;
@@ -324,6 +324,7 @@ int ldx_spi_get_transfer_mode(spi_t *spi, spi_transfer_cfg_t *transfer_mode)
 		transfer_mode->clk_mode = SPI_CLK_MODE_3;
 		break;
 	default:
+		log_error("%s: Invalid SPI mode: %d", __func__, read_value);
 		transfer_mode->clk_mode = SPI_CLK_MODE_ERROR;
 		break;
 	}
