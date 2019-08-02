@@ -280,7 +280,7 @@ int ldx_gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 		return ret;
 	}
 
-	if (edge != EDGE_ERROR) {
+	if ((edge != EDGE_ERROR) && (edge != NONE)) {
 		ret = libsoc_gpio_set_edge(_data->_internal_gpio, edge);
 		if (ret != EXIT_SUCCESS) {
 			log_error("%s: Unable to set GPIO %d edge to '%s' (%d)",
@@ -318,9 +318,9 @@ gpio_mode_t ldx_gpio_get_mode(gpio_t *gpio)
 	if (dir == INPUT) {
 		edge = libsoc_gpio_get_edge(_data->_internal_gpio);
 		if (edge == EDGE_ERROR) {
-			log_error("%s: Unable to get GPIO %d edge",
+			log_warning("%s: Unable to get GPIO %d edge",
 				  __func__, gpio->kernel_number);
-			return GPIO_MODE_ERROR;
+			edge = NONE;
 		}
 	}
 
