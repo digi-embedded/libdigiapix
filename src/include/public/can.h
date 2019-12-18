@@ -26,6 +26,7 @@ extern "C" {
 #include <net/if.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/time.h>
 
 #define NLMSG_TAIL(nmsg) \
         ((struct rtattr *)(((void *) (nmsg)) + NLMSG_ALIGN((nmsg)->nlmsg_len)))

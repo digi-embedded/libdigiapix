@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#include <sys/select.h>
+
 /*
  * Define _UAPI_CAN_NETLINK_H to avoid 'libsocketcan.h' including
  * the libsocketcan specific 'can_netlink.h' and use the standard
