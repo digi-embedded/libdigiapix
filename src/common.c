@@ -30,7 +30,7 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define PLATFORM_PATH				"/proc/device-tree/compatible"
 
-#define CC8X_PLATFORM_STRING		"imx8"
+#define CC8X_PLATFORM_STRING		"imx8x"
 #define CC8MN_PLATFORM_STRING		"imx8mn"
 #define CC6UL_PLATFORM_STRING		"imx6ul"
 #define CC6_PLATFORM_STRING			"imx6q"
