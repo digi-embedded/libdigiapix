@@ -34,8 +34,8 @@ CFLAGS += -I$(HEADERS_PRIVATE_DIR) -I$(HEADERS_PUBLIC_DIR)
 LDFLAGS += -shared -Wl,-soname,lib$(NAME).so.$(MAJOR),--sort-common
 
 # Add 3rd-party library dependences
-CFLAGS += $(shell pkg-config --cflags libsoc libsocketcan)
-LDLIBS += $(shell pkg-config --libs libsoc libsocketcan)
+CFLAGS += $(shell pkg-config --cflags libsoc libsocketcan libgpiod)
+LDLIBS += $(shell pkg-config --libs libsoc libsocketcan libgpiod)
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(SRCS:.c=.o)
