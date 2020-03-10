@@ -24,6 +24,11 @@ extern "C" {
 #include "common.h"
 
 /**
+ * MAX_CONTROLLER_LEN - Maximum length for controller strings.
+ */
+#define MAX_CONTROLLER_LEN 30
+
+/**
  * gpio_mode_t - Defined values for GPIO mode.
  */
 typedef enum {
@@ -83,6 +88,8 @@ typedef enum {
 typedef struct {
 	const char * const alias;
 	const unsigned int kernel_number;
+	const char * const gpio_controller;
+	const unsigned int gpio_line;
 	void *_data;
 } gpio_t;
 
@@ -105,7 +112,8 @@ typedef int (*ldx_gpio_interrupt_cb_t)(void *arg);
  *
  * Return: A pointer to gpio_t on success, NULL on error.
  */
-gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_mode_t request_mode);
+gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode,
+			 request_mode_t request_mode);
 
 /**
  * ldx_gpio_request_by_alias() - Request a GPIO to use using its alias name
@@ -119,7 +127,25 @@ gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode, request_m
  *
  * Return: A pointer to gpio_t on success, NULL on error.
  */
-gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode, request_mode_t request_mode);
+gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode,
+				  request_mode_t request_mode);
+
+/**
+ * ldx_gpio_request_by_controller() - Request a GPIO using libgpiod
+ *
+ * @controller:	The controller name or alias of the GPIO to request.
+ * @line:		The line number of the GPIO to request.
+ * @mode:		The desired GPIO working mode (gpio_mode_t).
+ * @request_mode:	Request mode for opening the GPIO (request_mode_t).
+ *
+ * This function returns a gpio_t pointer. Memory for the struct is obtained
+ * with 'malloc' and must be freed with 'ldx_gpio_free()'.
+ *
+ * Return: A pointer to gpio_t on success, NULL on error.
+ */
+gpio_t *ldx_gpio_request_by_controller(const char * const controller,
+				       const unsigned char line, gpio_mode_t mode,
+				       request_mode_t request_mode);
 
 /**
  * ldx_gpio_get_kernel_number() - Retrieve the GPIO Linux ID number of a given alias
@@ -313,7 +339,8 @@ gpio_irq_error_t ldx_gpio_wait_interrupt(gpio_t *gpio, int timeout);
  *
  * Return: EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
  */
-int ldx_gpio_start_wait_interrupt(gpio_t *gpio, const ldx_gpio_interrupt_cb_t interrupt_cb, void *arg);
+int ldx_gpio_start_wait_interrupt(gpio_t *gpio, const ldx_gpio_interrupt_cb_t interrupt_cb,
+				  void *arg);
 
 /**
  * ldx_gpio_stop_wait_interrupt() - Remove the interrupt detection on the given GPIO
