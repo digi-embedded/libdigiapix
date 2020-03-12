@@ -131,6 +131,25 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
 int ldx_gpio_get_kernel_number(const char * const gpio_alias);
 
 /**
+ * ldx_gpio_get_controller() - Retrieve the GPIO controller of a given alias
+ *
+ * @gpio_alias:	The alias name of the GPIO.
+ * @controller: Array where the controller is stored on success.
+ *
+ * Return: 0 on success, -1 on error.
+ */
+int ldx_gpio_get_controller(const char * const gpio_alias, char * const controller);
+
+/**
+ * ldx_gpio_get_line() - Retrieve the GPIO line of a given alias
+ *
+ * @gpio_alias:	The alias name of the GPIO.
+ *
+ * Return: The line associated to the alias, -1 on error.
+ */
+int ldx_gpio_get_line(const char * const gpio_alias);
+
+/**
  * ldx_gpio_free() - Free a previously requested GPIO
  *
  * @gpio:	A pointer to the requested GPIO to free.

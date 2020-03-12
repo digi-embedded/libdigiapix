@@ -176,6 +176,22 @@ int ldx_gpio_get_kernel_number(const char * const gpio_alias)
 	return config_get_gpio_kernel_number(gpio_alias);
 }
 
+int ldx_gpio_get_controller(const char * const gpio_alias, char * const controller)
+{
+	if (config_check_alias(gpio_alias) != EXIT_SUCCESS)
+		return -1;
+
+	return config_get_gpio_controller(gpio_alias, controller);
+}
+
+int ldx_gpio_get_line(const char * const gpio_alias)
+{
+	if (config_check_alias(gpio_alias) != EXIT_SUCCESS)
+		return -1;
+
+	return config_get_gpio_line(gpio_alias);
+}
+
 int ldx_gpio_free(gpio_t *gpio)
 {
 	int ret = EXIT_SUCCESS;

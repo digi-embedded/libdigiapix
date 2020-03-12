@@ -48,6 +48,25 @@ int config_check_alias(const char * const alias);
 int config_get_gpio_kernel_number(const char * const alias);
 
 /**
+ * config_get_gpio_controller() - Find the GPIO controller of an alias
+ *
+ * @alias:	The GPIO alias.
+ * @controller: Array where the controller is stored on success.
+ *
+ * Return: 0 on success, -1 on error.
+ */
+int config_get_gpio_controller(const char * const alias, char * const controller);
+
+/**
+ * config_get_gpio_line() - Find the GPIO line of an alias
+ *
+ * @alias:	The GPIO alias.
+ *
+ * Return: The line, -1 on error.
+ */
+int config_get_gpio_line(const char * const alias);
+
+/**
  * config_get_pwm_chip_number() - Find the chip PWM number of a given PWM alias
  *
  * @alias: The PWM alias.

@@ -41,7 +41,10 @@ static void __attribute__ ((destructor(101))) digiapix_fini(void);
 
 static int config_load(void);
 static void config_free(void);
-static int config_get_csv_integer(const char * const group, const char * const alias, int index);
+static int config_get_csv_integer(const char * const group, const char * const alias,
+				  int index);
+static int config_get_csv_string(const char * const group, const char * const alias,
+				 char * const controller, int index);
 
 static board_config *config;
 
@@ -65,6 +68,16 @@ int config_check_alias(const char * const alias)
 int config_get_gpio_kernel_number(const char * const alias)
 {
 	return libsoc_board_gpio_id(config, alias);
+}
+
+int config_get_gpio_controller(const char * const alias, char * const controller)
+{
+	return config_get_csv_string("GPIO", alias, controller, 0);
+}
+
+int config_get_gpio_line(const char * const alias)
+{
+	return config_get_csv_integer("GPIO", alias, 1);
 }
 
 int config_get_pwm_chip_number(const char * const alias)
@@ -209,6 +222,46 @@ static int config_get_csv_integer(const char * const group, const char * const a
 	return item;
 }
 
+/**
+ * config_get_csv_string() - Reads the comma-separated string for the given
+ *                           index in the requested configuration value
+ *
+ * @group: The configuration group.
+ * @alias: The alias of the comma-separated configuration value.
+ * @item: Array where the item is stored on success.
+ * @index: The index of the comma-separated value to get
+ *
+ * Return: 0 on success, -1 on error.
+ */
+static int config_get_csv_string(const char * const group, const char * const alias,
+				 char * const item, int index)
+{
+	char *array = NULL;
+	char *token = NULL;
+	int item_index = 0;
+	const char *value = conffile_get(config->conf, group, alias, NULL);
+
+	if (value == NULL || item == NULL)
+		return -1;
+
+	array = strdup(value);
+	if (array == NULL)
+		return -1;
+	token = strtok(array, ",");
+
+	/* Walk through other tokens */
+	while (token && (item_index < index)) {
+		token = strtok(NULL, ",");
+		item_index++;
+	}
+
+	if (token != NULL)
+		strcpy(item, token);
+
+	free(array);
+
+	return 0;
+}
 
 /**
  * get_cmd_output() - Execute the given command and return the output
