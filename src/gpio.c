@@ -162,7 +162,8 @@ gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode,
 gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mode,
 				  request_mode_t request_mode)
 {
-	int kernel_number;
+	char *controller_label = NULL;
+	int line, kernel_number, controller_ret;
 	gpio_t *new_gpio = NULL;
 
 	if (check_mode(mode) != EXIT_SUCCESS)
@@ -177,6 +178,30 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
 	log_debug("%s: Requesting GPIO '%s' [mode '%s' (%d), request mode: %d]",
 		  __func__, gpio_alias, gpio_mode_strings[mode], mode, request_mode);
 
+	/* Attempt parsing the configuration file as '<alias> = <controller>,<line>' */
+	controller_label = calloc(1, MAX_CONTROLLER_LEN);
+	if (controller_label == NULL) {
+		log_error("%s: Unable to request GPIO. Cannot allocate memory", __func__);
+		return NULL;
+	}
+	controller_ret = ldx_gpio_get_controller(gpio_alias, controller_label);
+	line = ldx_gpio_get_line(gpio_alias);
+	if ((controller_ret == -1) || (line == -1))  {
+		free (controller_label);
+		goto attempt_sysfs;
+	}
+
+	new_gpio = ldx_gpio_request_by_controller(controller_label, line, mode, request_mode);
+	if (new_gpio != NULL) {
+		gpio_t init_gpio = {gpio_alias, UNDEFINED_SYSFS_GPIO, controller_label, line, new_gpio->_data};
+
+		memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
+	}
+
+	return new_gpio;
+
+attempt_sysfs:
+	/* Attempt parsing the configuration file as '<alias> = <kernel_number>' */
 	kernel_number = ldx_gpio_get_kernel_number(gpio_alias);
 	if (kernel_number == UNDEFINED_SYSFS_GPIO) {
 		log_error("%s: Invalid GPIO alias, '%s'", __func__, gpio_alias);
@@ -256,6 +281,7 @@ gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 		return NULL;
 	}
 
+
 	data->_mode = GPIO_MODE_ERROR;
 	data->_active_mode = GPIO_ACTIVE_HIGH;
 	data->_chip = chip;
@@ -321,6 +347,10 @@ int ldx_gpio_free(gpio_t *gpio)
 		gpiod_chip_close(_data->_chip);
 
 	free(gpio->_data);
+
+	/* Free controller label if requested internally by request_by_alias */
+	if (gpio->gpio_controller != NULL && gpio->alias != NULL)
+		free((char*)gpio->gpio_controller);
 	free(gpio);
 
 	return ret;
