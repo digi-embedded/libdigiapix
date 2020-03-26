@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <gpiod.h>
+#include <sys/ioctl.h>
+#include <linux/gpio.h>
 
 #include "_common.h"
 #include "_libsoc_interfaces.h"
@@ -364,13 +366,35 @@ int ldx_gpio_set_debounce(gpio_t *gpio, unsigned int usec)
 	if (check_gpio(gpio) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
 
-	log_debug("%s: Setting debounce for GPIO %d to: '%u'", __func__,
-		  gpio->kernel_number, usec);
+	log_debug("%s: Setting debounce for GPIO %s to: '%u'", __func__,
+		  show_gpio(gpio), usec);
 
 	if (gpio->kernel_number == UNDEFINED_SYSFS_GPIO) {
-		log_debug("%s: Not yet implemented for libgpiod implementation",
-			  __func__);
+#if defined(GPIO_SET_DEBOUNCE_IOCTL)
+		struct _gpio_t *_data = _data = gpio->_data;
+		struct gpioline_debounce linedebounce;
+		char chip_path[] = "/dev/gpiochipXXX";
+
+		memset(&linedebounce, 0, sizeof(linedebounce));
+
+		linedebounce.line_offset = gpiod_line_offset(_data->_line);
+		linedebounce.debounce_usec = usec;
+
+		sprintf(chip_path, "/dev/%s", gpiod_chip_name(_data->_chip));
+		fd = open(chip_path, O_RDWR);
+		if (fd < 0)
+			return EXIT_FAILURE;
+
+		if (ioctl(fd, GPIO_SET_DEBOUNCE_IOCTL, &linedebounce) < 0) {
+			log_error("%s: GPIO_SET_DEBOUNCE_IOCTL failed. Err %d",
+				  __func__, ret);
+			ret = EXIT_FAILURE;
+		}
+
+		close(fd);
+#else
 		ret = EXIT_FAILURE;
+#endif
 	} else {
 		sprintf(buf, "/sys/class/gpio/gpio%d/debounce", gpio->kernel_number);
 
