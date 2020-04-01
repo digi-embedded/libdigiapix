@@ -193,7 +193,7 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
 		goto attempt_sysfs;
 	}
 
-	new_gpio = ldx_gpio_request_by_controller(controller_label, line, mode, request_mode);
+	new_gpio = ldx_gpio_request_by_controller(controller_label, line, mode);
 	if (new_gpio != NULL) {
 		gpio_t init_gpio = {gpio_alias, UNDEFINED_SYSFS_GPIO, controller_label, line, new_gpio->_data};
 
@@ -222,8 +222,7 @@ attempt_sysfs:
 
 gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 				       const unsigned char line_num,
-				       gpio_mode_t mode,
-				       request_mode_t request_mode)
+				       gpio_mode_t mode)
 {
 	gpio_t *new_gpio = NULL;
 	struct _gpio_t *data = NULL;
@@ -234,30 +233,21 @@ gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 	if (check_mode(mode) != EXIT_SUCCESS)
 		return NULL;
 
-	if (check_request_mode(request_mode) != EXIT_SUCCESS) {
-		request_mode = REQUEST_SHARED;
-		log_info("%s: Invalid request mode, setting to 'REQUEST_SHARED'",
-			 __func__);
-	}
-
-	log_debug("%s: Requesting GPIO '%s %d' [mode '%s' (%d), request mode: %d]",
-		  __func__, controller, line_num, gpio_mode_strings[mode],
-		  mode, request_mode);
+	log_debug("%s: Requesting GPIO '%s %d' [mode '%s' (%d)",
+		  __func__, controller, line_num, gpio_mode_strings[mode], mode);
 
 	chip = gpiod_chip_open_lookup(controller);
 	if (!chip) {
 		log_error("%s: Unable to request GPIO '%s %d' "
-			  "[mode: '%s' (%d), request mode: %d], chip open failed",
-			  __func__, controller, line_num, gpio_mode_strings[mode],
-			  mode, request_mode);
+			  "[mode: '%s' (%d)], chip open failed", __func__,
+			  controller, line_num, gpio_mode_strings[mode], mode);
 		return NULL;
 	}
 	line = gpiod_chip_get_line(chip, line_num);
 	if (!line) {
 		log_error("%s: Unable to request GPIO '%s %d' "
-			  "[mode: '%s' (%d), request mode: %d], chip get line failed",
-			  __func__, controller, line_num, gpio_mode_strings[mode],
-			  mode, request_mode);
+			  "[mode: '%s' (%d)], chip get line failed", __func__,
+			  controller, line_num, gpio_mode_strings[mode], mode);
 		gpiod_chip_close(chip);
 		return NULL;
 	}
@@ -265,9 +255,8 @@ gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 	data = calloc(1, sizeof(struct _gpio_t));
 	if (data == NULL) {
 		log_error("%s: Unable to request GPIO '%s %d' "
-			  "[mode: '%s' (%d), request mode: %d], cannot allocate memory",
-			  __func__, controller, line_num, gpio_mode_strings[mode],
-			  mode, request_mode);
+			  "[mode: '%s' (%d)], cannot allocate memory", __func__,
+			  controller, line_num, gpio_mode_strings[mode], mode);
 		gpiod_chip_close(chip);
 		return NULL;
 	}
@@ -275,9 +264,8 @@ gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 	new_gpio = calloc(1, sizeof(gpio_t));
 	if (new_gpio == NULL) {
 		log_error("%s: Unable to request GPIO '%s %d' "
-			  "[mode: '%s' (%d), request mode: %d], cannot allocate memory",
-			  __func__, controller, line_num, gpio_mode_strings[mode],
-			  mode, request_mode);
+			  "[mode: '%s' (%d)], cannot allocate memory", __func__,
+			  controller, line_num, gpio_mode_strings[mode], mode);
 		gpiod_chip_close(chip);
 		free(data);
 		return NULL;
@@ -465,11 +453,20 @@ int ldx_gpio_set_mode(gpio_t *gpio, gpio_mode_t mode)
 			return EXIT_FAILURE;
 		}
 
-		//TODO: check request_mode
-
 		if (gpiod_line_is_used(_data->_line)) {
-			log_debug("%s: GPIO %s was in use", __func__, show_gpio(gpio));
-			gpiod_line_release(_data->_line);
+			/* Check if line was requested by us */
+			if (gpiod_line_is_requested(_data->_line)) {
+				log_debug("%s: GPIO %s was requested by us",
+					  __func__, show_gpio(gpio));
+
+				/* Release it so we can request it again */
+				gpiod_line_release(_data->_line);
+			} else {
+				log_error("%s: GPIO %s was in use by '%s'",
+					  __func__, show_gpio(gpio),
+					  gpiod_line_consumer(_data->_line));
+				return EXIT_FAILURE;
+			}
 		}
 
 		ret = gpiod_line_request(_data->_line, &request_cfg, default_val);

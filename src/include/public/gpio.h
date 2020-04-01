@@ -121,6 +121,7 @@ gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode,
  * @gpio_alias:		The alias name of the GPIO to request.
  * @mode:		The desired GPIO working mode (gpio_mode_t).
  * @request_mode:	Request mode for opening the GPIO (request_mode_t).
+ *			This field is ignored if alias is in libgpiod format.
  *
  * This function returns a gpio_t pointer. Memory for the struct is obtained
  * with 'malloc' and must be freed with 'ldx_gpio_free()'.
@@ -136,7 +137,6 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
  * @controller:	The controller name or alias of the GPIO to request.
  * @line:		The line number of the GPIO to request.
  * @mode:		The desired GPIO working mode (gpio_mode_t).
- * @request_mode:	Request mode for opening the GPIO (request_mode_t).
  *
  * This function returns a gpio_t pointer. Memory for the struct is obtained
  * with 'malloc' and must be freed with 'ldx_gpio_free()'.
@@ -144,8 +144,7 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
  * Return: A pointer to gpio_t on success, NULL on error.
  */
 gpio_t *ldx_gpio_request_by_controller(const char * const controller,
-				       const unsigned char line, gpio_mode_t mode,
-				       request_mode_t request_mode);
+				       const unsigned char line, gpio_mode_t mode);
 
 /**
  * ldx_gpio_get_kernel_number() - Retrieve the GPIO Linux ID number of a given alias
