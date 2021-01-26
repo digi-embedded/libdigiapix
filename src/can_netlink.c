@@ -141,8 +141,8 @@ int ldx_can_stop(const can_if_t *cif)
 				  __func__, cif->name);
 			return -CAN_ERROR_NL_GET_STATE;
 		}
-
-		if (state != CAN_STATE_STOPPED) {
+		/* Check if the interface is down */
+		if (state != CAN_STATE_ERROR_ACTIVE) {
 			log_error("%s: Unexpected state %d, in %s interface",
 				  __func__, state, cif->name);
 			return -CAN_ERROR_NL_STATE_MISSMATCH;
