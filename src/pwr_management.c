@@ -37,6 +37,7 @@
 #define CC6_GPU_PATH			"/sys/devices/soc0/soc/130000.gpu/gpu_mult/"
 #define CC8X_GPU_PATH			"/sys/devices/platform/80000000.imx8_gpu_ss/"
 #define CC8MN_GPU_PATH			"/sys/devices/platform/38000000.gpu/"
+#define CC8MM_GPU_PATH			"/sys/devices/platform/38000000.gpu/"
 #define FREQ_PATH 				"/sys/devices/system/cpu/cpufreq/policy0/"
 #define MIN_MULTIPLIER_PATH		"/sys/bus/platform/drivers/galcore/"
 #define TEMP_PATH				"/sys/devices/virtual/thermal/thermal_zone0/"
@@ -673,6 +674,9 @@ int ldx_gpu_set_multiplier(int multiplier) {
 	case CC8MN_PLATFORM:
 		asprintf(&path, "%s", CC8MN_GPU_PATH);
 		break;
+	case CC8MM_PLATFORM:
+		asprintf(&path, "%s", CC8MM_GPU_PATH);
+		break;
 	case CC6_PLATFORM:
 		asprintf(&path, "%s", CC6_GPU_PATH);
 		break;
@@ -725,6 +729,9 @@ int ldx_gpu_get_multiplier()
 		break;
 	case CC8MN_PLATFORM:
 		asprintf(&path, "%s", CC8MN_GPU_PATH);
+		break;
+	case CC8MM_PLATFORM:
+		asprintf(&path, "%s", CC8MM_GPU_PATH);
 		break;
 	case CC6_PLATFORM:
 		asprintf(&path, "%s", CC6_GPU_PATH);

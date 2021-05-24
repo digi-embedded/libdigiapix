@@ -54,6 +54,7 @@ typedef enum {
 	CC6_PLATFORM,
 	CC6UL_PLATFORM,
 	CC8MN_PLATFORM,
+	CC8MM_PLATFORM,
 } digi_platform_t;
 
 #ifdef __cplusplus

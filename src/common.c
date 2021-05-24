@@ -32,6 +32,7 @@
 
 #define CC8X_PLATFORM_STRING		"imx8x"
 #define CC8MN_PLATFORM_STRING		"imx8mn"
+#define CC8MM_PLATFORM_STRING		"imx8mm"
 #define CC6UL_PLATFORM_STRING		"imx6ul"
 #define CC6_PLATFORM_STRING			"imx6q"
 #define CC6DL_PLATFORM_STRING 		"imx6dl"
@@ -399,6 +400,8 @@ digi_platform_t get_digi_platform()
 		platform = CC6UL_PLATFORM;
 	else if (strstr(cmd_output, CC8MN_PLATFORM_STRING) != NULL)
 		platform = CC8MN_PLATFORM;
+	else if (strstr(cmd_output, CC8MM_PLATFORM_STRING) != NULL)
+		platform = CC8MM_PLATFORM;
 	else if (strstr(cmd_output, CC8X_PLATFORM_STRING) != NULL)
 		platform = CC8X_PLATFORM;
 	else if (strstr(cmd_output, CC6_PLATFORM_STRING) != NULL ||
