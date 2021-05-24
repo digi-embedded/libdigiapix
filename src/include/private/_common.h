@@ -26,6 +26,8 @@ extern "C" {
 #include "common.h"
 
 #define READ_PATH					"cat %s"
+#define READ_PLATFORM					"cat %s | grep ,imx"
+
 
 /**
  * config_check_alias() - Verifies the alias is valid

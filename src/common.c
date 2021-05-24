@@ -382,7 +382,7 @@ digi_platform_t get_digi_platform()
 	char *cmd;
 	digi_platform_t platform = INVALID_PLATFORM;
 
-	asprintf(&cmd, READ_PATH, PLATFORM_PATH);
+	asprintf(&cmd, READ_PLATFORM, PLATFORM_PATH);
 	if (!cmd) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return INVALID_PLATFORM;
