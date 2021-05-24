@@ -17,6 +17,7 @@
 #define _GNU_SOURCE
 
 #include <fcntl.h>
+#include <linux/version.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -35,7 +36,11 @@
 // Paths
 #define CORES_PATH 				"/sys/devices/system/cpu"
 #define CC6_GPU_PATH			"/sys/devices/soc0/soc/130000.gpu/gpu_mult/"
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
 #define CC8X_GPU_PATH			"/sys/devices/platform/80000000.imx8_gpu_ss/"
+#else
+#define CC8X_GPU_PATH			"/sys/devices/platform/bus@53100000/80000000.imx8_gpu0_ss/"
+#endif
 #define CC8MN_GPU_PATH			"/sys/devices/platform/38000000.gpu/"
 #define CC8MM_GPU_PATH			"/sys/devices/platform/38000000.gpu/"
 #define FREQ_PATH 				"/sys/devices/system/cpu/cpufreq/policy0/"

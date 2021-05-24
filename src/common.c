@@ -16,6 +16,7 @@
 
 #define _GNU_SOURCE
 
+#include <linux/version.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,7 +31,11 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define PLATFORM_PATH				"/proc/device-tree/compatible"
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
 #define CC8X_PLATFORM_STRING		"imx8x"
+#else
+#define CC8X_PLATFORM_STRING		"imx8qxp"
+#endif
 #define CC8MN_PLATFORM_STRING		"imx8mn"
 #define CC8MM_PLATFORM_STRING		"imx8mm"
 #define CC6UL_PLATFORM_STRING		"imx6ul"
