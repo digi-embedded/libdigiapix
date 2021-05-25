@@ -35,7 +35,7 @@
 
 // Paths
 #define CORES_PATH 				"/sys/devices/system/cpu"
-#define CC6_GPU_PATH			"/sys/devices/soc0/soc/130000.gpu/gpu_mult/"
+#define CC6_GPU_PATH			"/sys/devices/soc0/soc/130000.gpu/"
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
 #define CC8X_GPU_PATH			"/sys/devices/platform/80000000.imx8_gpu_ss/"
 #else
