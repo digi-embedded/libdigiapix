@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Digi International Inc.
+ * Copyright 2017-2021, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,7 +26,8 @@
 #include "_log.h"
 #include "i2c.h"
 
-#define MAX_I2C_BUSES	5
+#define MAX_I2C_BUSES	10
+#define LIST_I2C_BUSES_CMD	"ls /dev/i2c-* |  sed -e 's,/dev/i2c-,,' | xargs"
 
 static int check_i2c(i2c_t *i2c);
 
@@ -86,36 +87,57 @@ int ldx_i2c_get_bus(char const * const i2c_alias)
 
 int ldx_i2c_list_available_buses(uint8_t **buses)
 {
-	uint8_t i, next = 0;
+	uint8_t i = 0;
+	uint8_t nports = 0;
 	uint8_t _buses[MAX_I2C_BUSES] = {0};
 	char path[20];
+	char *cmd, *cmd_output, *token;
 
 	if (buses == NULL) {
 		log_error("%s: Unable to list I2C buses", __func__);
 		return EXIT_FAILURE;
 	}
 
-	for (i = 0; i < MAX_I2C_BUSES; i++) {
-		snprintf(path, sizeof(path), "/dev/i2c-%d", i);
+	asprintf(&cmd, "%s", LIST_I2C_BUSES_CMD);
+	if (!cmd) {
+		log_error("%s: Unable to list I2C buses", __func__);
+		return EXIT_FAILURE;
+	}
+
+	cmd_output = get_cmd_output(cmd);
+	if (cmd_output == NULL) {
+		log_error("%s: Unable to list I2C buses", __func__);
+		free(cmd);
+		return EXIT_FAILURE;
+	}
+
+	token = strtok(cmd_output, " ");
+	while (token != NULL) {
+		snprintf(path, sizeof(path), "/dev/i2c-%s", token);
 		if (access(path, F_OK) == 0) {
-			_buses[next] = i;
-			next++;
+			_buses[i] = atoi(token);
+			i++;
+			token = strtok(NULL, " ");
 		}
+	};
+	nports = i;
+
+	if (nports > 0) {
+		*buses = (uint8_t *)calloc(nports, sizeof(uint8_t));
+		if (*buses == NULL) {
+			log_error("%s: Could not allocate memory to list buses", __func__);
+			free(cmd);
+			free(cmd_output);
+			return EXIT_FAILURE;
+		}
+
+		for (i = 0; i < nports; i++)
+			(*buses)[i] = _buses[i];
 	}
 
-	if (next == 0)
-		return 0;
-
-	*buses = (uint8_t *)calloc(next, sizeof(uint8_t));
-	if (*buses == NULL) {
-		log_error("%s: Could not allocate memory to list buses", __func__);
-		return -1;
-	}
-
-	for (i = 0; i < next; i++)
-		(*buses)[i] = _buses[i];
-
-	return next;
+	free(cmd);
+	free(cmd_output);
+	return nports;
 }
 
 int ldx_i2c_free(i2c_t *i2c)
