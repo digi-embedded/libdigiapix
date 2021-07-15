@@ -105,7 +105,8 @@ int ldx_adc_free(adc_t *adc);
  *
  * @adc:	A requested ADC to get its value.
  *
- * Return: The value of the ADC channel, -1 on error.
+ * Return: The value of the ADC channel, -errno on error.
+ *         errno can be checked against EAGAIN or ETIMEDOUT in order to retry.
  */
 int ldx_adc_get_sample(adc_t *adc);
 
