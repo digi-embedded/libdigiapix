@@ -205,9 +205,18 @@ int ldx_adc_get_sample(adc_t *adc)
 
 	nbytes = read(_adc->input_fd, value, sizeof(value) - 1);
 	if (nbytes < 0) {
-		log_error("%s: Error reading input", __func__);
-		return -1;
+		if (errno == EAGAIN)
+			log_warning("%s: EAGAIN reading input", __func__);
+		else
+			log_error("%s: Error %d reading input", __func__, errno);
+
+		/*
+		 * Propagate errno so user can check against EAGAIN or ETIMEDOUT
+		 * in order to retry.
+		 */
+		return -errno;
 	}
+
 	/* Remove newline character read from the sysfs */
 	value[nbytes - 1] = 0;
 
