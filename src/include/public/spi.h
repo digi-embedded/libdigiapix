@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 #include "common.h"
+#include <stdint.h>
 
 /**
  * spi_clk_mode_t - Defined values for SPI clock mode.
