@@ -63,6 +63,13 @@ PUBLIC_HEADERS = $(HEADERS_PUBLIC_DIR)/adc.h \
 		 $(HEADERS_PUBLIC_DIR)/spi.h \
 		 $(HEADERS_PUBLIC_DIR)/watchdog.h
 
+ifeq ($(CONFIG_DISABLE_BT),)
+SRCS += $(SRC_DIR)/bluetooth.c
+PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/bluetooth.h
+CFLAGS += $(shell pkg-config --cflags bluez)
+LDLIBS += $(shell pkg-config --libs bluez)
+endif
+
 ifeq ($(CONFIG_DISABLE_CAN),)
 SRCS += $(SRC_DIR)/can.c \
 	$(SRC_DIR)/can_netlink.c

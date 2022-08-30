@@ -23,6 +23,14 @@ extern "C" {
 
 #include <syslog.h>
 
+#ifndef MAC_ADDRESS_GROUPS
+#define MAC_ADDRESS_GROUPS	6
+#endif
+
+#ifndef IFNAMSIZ
+#define IFNAMSIZ		16
+#endif
+
 /**
  * ldx_set_log_level() - Set the new log level
  *
