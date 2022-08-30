@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Digi International Inc.
+# Copyright 2017-2022, Digi International Inc.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,7 +35,7 @@ PYTHON_BINDINGS_DIR = $(BINDINGS_DIR)/python
 
 INSTALL_HEADERS_DIR = /usr/include/lib${NAME}
 
-CFLAGS += -Wall -O2 -fPIC
+CFLAGS += -Wall -O2 -fPIC -D_GNU_SOURCE
 CFLAGS += -I$(HEADERS_PRIVATE_DIR) -I$(HEADERS_PUBLIC_DIR)
 LDFLAGS += -shared -Wl,-soname,lib$(NAME).so.$(MAJOR),--sort-common
 
