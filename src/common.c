@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -387,8 +387,7 @@ digi_platform_t get_digi_platform()
 	char *cmd;
 	digi_platform_t platform = INVALID_PLATFORM;
 
-	asprintf(&cmd, READ_PLATFORM, PLATFORM_PATH);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PLATFORM, PLATFORM_PATH) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return INVALID_PLATFORM;
 	}

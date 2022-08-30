@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -98,8 +98,7 @@ int ldx_i2c_list_available_buses(uint8_t **buses)
 		return EXIT_FAILURE;
 	}
 
-	asprintf(&cmd, "%s", LIST_I2C_BUSES_CMD);
-	if (!cmd) {
+	if (asprintf(&cmd, "%s", LIST_I2C_BUSES_CMD) < 0) {
 		log_error("%s: Unable to list I2C buses", __func__);
 		return EXIT_FAILURE;
 	}

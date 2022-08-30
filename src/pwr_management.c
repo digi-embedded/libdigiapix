@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Digi International Inc.
+ * Copyright 2019-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -122,8 +122,7 @@ static int get_int_from_path(const char* path)
 	char *cmd;
 	int number;
 
-	asprintf(&cmd, READ_PATH, path);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PATH, path) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return -1;
 	}
@@ -197,8 +196,7 @@ static int ldx_cpu_set_status_core(int core, int status)
 		return EXIT_FAILURE;
 	}
 
-	asprintf(&cmd, "%s/%s%d/%s", CORES_PATH, CORES, core, ONLINE);
-	if (!cmd) {
+	if (asprintf(&cmd, "%s/%s%d/%s", CORES_PATH, CORES, core, ONLINE) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return -1;
 	}
@@ -289,8 +287,7 @@ int ldx_cpu_get_status_core(int core)
 		return -1;
 	}
 
-	asprintf(&cmd, "%s/%s%d/%s", CORES_PATH, CORES, core, ONLINE);
-	if (!cmd) {
+	if (asprintf(&cmd, "%s/%s%d/%s", CORES_PATH, CORES, core, ONLINE) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return -1;
 	}
@@ -319,8 +316,7 @@ available_frequencies_t ldx_cpu_get_available_freq()
 	available_frequencies_t freq;
 	int i = 0;
 
-	asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_FREQ);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_FREQ) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return freq;
 	}
@@ -375,8 +371,7 @@ int ldx_cpu_is_governor_available(governor_mode_t governor)
 	char *cmd;
 	char *ptr;
 
-	asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_GOVERNORS);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_GOVERNORS) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return EXIT_FAILURE;
 	}
@@ -416,8 +411,7 @@ int ldx_cpu_set_governor (governor_mode_t governor)
 		return EXIT_FAILURE;
 	}
 
-	asprintf(&cmd, "%s/%s", FREQ_PATH, SCALING_GOVERNOR);
-	if (!cmd) {
+	if (asprintf(&cmd, "%s/%s", FREQ_PATH, SCALING_GOVERNOR) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return EXIT_FAILURE;
 	}
@@ -440,8 +434,7 @@ governor_mode_t ldx_cpu_get_governor()
 	char *ptr;
 	governor_mode_t governor;
 
-	asprintf(&cmd, READ_PATH, FREQ_PATH SCALING_GOVERNOR);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PATH, FREQ_PATH SCALING_GOVERNOR) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return GOVERNOR_INVALID;
 	}
@@ -669,21 +662,22 @@ int ldx_cpu_get_usage()
 int ldx_gpu_set_multiplier(int multiplier) {
 
 	digi_platform_t platform = get_digi_platform();
+	int ret = -1;
 	char *path;
 	char *dir_path = NULL;
 
 	switch (platform) {
 	case CC8X_PLATFORM:
-		asprintf(&path, "%s", CC8X_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8X_GPU_PATH);
 		break;
 	case CC8MN_PLATFORM:
-		asprintf(&path, "%s", CC8MN_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8MN_GPU_PATH);
 		break;
 	case CC8MM_PLATFORM:
-		asprintf(&path, "%s", CC8MM_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8MM_GPU_PATH);
 		break;
 	case CC6_PLATFORM:
-		asprintf(&path, "%s", CC6_GPU_PATH);
+		ret = asprintf(&path, "%s", CC6_GPU_PATH);
 		break;
 	case CC6UL_PLATFORM:
 		log_error("%s: This platform doesn't support GPU management", __func__);
@@ -693,7 +687,7 @@ int ldx_gpu_set_multiplier(int multiplier) {
 		return -1;
 	}
 
-	if (!path) {
+	if (ret < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return -1;
 	}
@@ -724,22 +718,22 @@ int ldx_gpu_get_multiplier()
 	char *dir_path = NULL;
 	char *path;
 	digi_platform_t platform;
-	int multiplier;
+	int multiplier, ret = -1;
 
 	platform = get_digi_platform();
 
 	switch (platform) {
 	case CC8X_PLATFORM:
-		asprintf(&path, "%s", CC8X_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8X_GPU_PATH);
 		break;
 	case CC8MN_PLATFORM:
-		asprintf(&path, "%s", CC8MN_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8MN_GPU_PATH);
 		break;
 	case CC8MM_PLATFORM:
-		asprintf(&path, "%s", CC8MM_GPU_PATH);
+		ret = asprintf(&path, "%s", CC8MM_GPU_PATH);
 		break;
 	case CC6_PLATFORM:
-		asprintf(&path, "%s", CC6_GPU_PATH);
+		ret = asprintf(&path, "%s", CC6_GPU_PATH);
 		break;
 	case CC6UL_PLATFORM:
 		log_error("%s: This platform doesn't support GPU management", __func__);
@@ -749,7 +743,7 @@ int ldx_gpu_get_multiplier()
 		return -1;
 	}
 
-	if (!path) {
+	if (ret < 0) {
 		log_error("%s: Unable to allocate memory for the path", __func__);
 		return -1;
 	}
