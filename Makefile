@@ -47,6 +47,7 @@ SRCS =  $(SRC_DIR)/adc.c \
 	$(SRC_DIR)/common.c \
 	$(SRC_DIR)/gpio.c \
 	$(SRC_DIR)/i2c.c \
+	$(SRC_DIR)/process.c \
 	$(SRC_DIR)/pwm.c \
 	$(SRC_DIR)/pwr_management.c \
 	$(SRC_DIR)/spi.c \
@@ -56,6 +57,7 @@ PUBLIC_HEADERS = $(HEADERS_PUBLIC_DIR)/adc.h \
 		 $(HEADERS_PUBLIC_DIR)/common.h \
 		 $(HEADERS_PUBLIC_DIR)/gpio.h \
 		 $(HEADERS_PUBLIC_DIR)/i2c.h \
+		 $(HEADERS_PUBLIC_DIR)/process.h \
 		 $(HEADERS_PUBLIC_DIR)/pwm.h \
 		 $(HEADERS_PUBLIC_DIR)/pwr_management.h \
 		 $(HEADERS_PUBLIC_DIR)/spi.h \
