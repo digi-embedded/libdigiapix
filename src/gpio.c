@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -299,7 +299,7 @@ int ldx_gpio_get_kernel_number(const char * const gpio_alias)
 int ldx_gpio_get_controller(const char * const gpio_alias, char * const controller)
 {
 	if (config_check_alias(gpio_alias) != EXIT_SUCCESS)
-		return -1;
+		return EXIT_FAILURE;
 
 	return config_get_gpio_controller(gpio_alias, controller);
 }

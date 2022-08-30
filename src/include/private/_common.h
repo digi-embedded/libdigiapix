@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -59,7 +59,7 @@ int config_get_gpio_kernel_number(const char * const alias);
  * @alias:	The GPIO alias.
  * @controller: Array where the controller is stored on success.
  *
- * Return: 0 on success, -1 on error.
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error.
  */
 int config_get_gpio_controller(const char * const alias, char * const controller);
 

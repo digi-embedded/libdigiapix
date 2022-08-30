@@ -234,7 +234,7 @@ static int config_get_csv_integer(const char * const group, const char * const a
  * @item: Array where the item is stored on success.
  * @index: The index of the comma-separated value to get
  *
- * Return: 0 on success, -1 on error.
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error.
  */
 static int config_get_csv_string(const char * const group, const char * const alias,
 				 char * const item, int index)
@@ -245,11 +245,11 @@ static int config_get_csv_string(const char * const group, const char * const al
 	const char *value = conffile_get(config->conf, group, alias, NULL);
 
 	if (value == NULL || item == NULL)
-		return -1;
+		return EXIT_FAILURE;
 
 	array = strdup(value);
 	if (array == NULL)
-		return -1;
+		return EXIT_FAILURE;
 	token = strtok(array, ",");
 
 	/* Walk through other tokens */
@@ -263,7 +263,7 @@ static int config_get_csv_string(const char * const group, const char * const al
 
 	free(array);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /**
