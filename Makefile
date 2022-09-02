@@ -39,11 +39,36 @@ CFLAGS += -Wall -O2 -fPIC -D_GNU_SOURCE
 CFLAGS += -I$(HEADERS_PRIVATE_DIR) -I$(HEADERS_PUBLIC_DIR)
 LDFLAGS += -shared -Wl,-soname,lib$(NAME).so.$(MAJOR),--sort-common
 
-# Add 3rd-party library dependences
-CFLAGS += $(shell pkg-config --cflags libsoc libsocketcan libgpiod)
-LDLIBS += $(shell pkg-config --libs libsoc libsocketcan libgpiod)
+# Add 3rd-party library dependencies
+CFLAGS += $(shell pkg-config --cflags libsoc libgpiod)
+LDLIBS += $(shell pkg-config --libs libsoc libgpiod)
 
-SRCS = $(wildcard $(SRC_DIR)/*.c)
+SRCS =  $(SRC_DIR)/adc.c \
+	$(SRC_DIR)/common.c \
+	$(SRC_DIR)/gpio.c \
+	$(SRC_DIR)/i2c.c \
+	$(SRC_DIR)/pwm.c \
+	$(SRC_DIR)/pwr_management.c \
+	$(SRC_DIR)/spi.c \
+	$(SRC_DIR)/watchdog.c
+
+PUBLIC_HEADERS = $(HEADERS_PUBLIC_DIR)/adc.h \
+		 $(HEADERS_PUBLIC_DIR)/common.h \
+		 $(HEADERS_PUBLIC_DIR)/gpio.h \
+		 $(HEADERS_PUBLIC_DIR)/i2c.h \
+		 $(HEADERS_PUBLIC_DIR)/pwm.h \
+		 $(HEADERS_PUBLIC_DIR)/pwr_management.h \
+		 $(HEADERS_PUBLIC_DIR)/spi.h \
+		 $(HEADERS_PUBLIC_DIR)/watchdog.h
+
+ifeq ($(CONFIG_DISABLE_CAN),)
+SRCS += $(SRC_DIR)/can.c \
+	$(SRC_DIR)/can_netlink.c
+PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/can.h
+CFLAGS += $(shell pkg-config --cflags libsocketcan)
+LDLIBS += $(shell pkg-config --libs libsocketcan)
+endif
+
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
@@ -71,7 +96,7 @@ install: lib$(NAME).so
 	install -m 0644 lib$(NAME).pc $(DESTDIR)/usr/lib/pkgconfig/
 	# Install header files
 	install -d $(DESTDIR)$(INSTALL_HEADERS_DIR)
-	install -m 0644 $(HEADERS_PUBLIC_DIR)/*.h $(DESTDIR)$(INSTALL_HEADERS_DIR)/
+	install -m 0644 $(PUBLIC_HEADERS) $(DESTDIR)$(INSTALL_HEADERS_DIR)/
 
 install-python-bindings: python-bindings install
 	# Install Python module
@@ -79,7 +104,4 @@ install-python-bindings: python-bindings install
 
 .PHONY: clean
 clean:
-	-rm -f *.so* $(OBJS)
-	-rm -rf $(PYTHON_BINDINGS_DIR)/$(DIST_DIR)
-	-rm -rf $(PYTHON_BINDINGS_DIR)/$(BUILD_DIR)
-	-rm -rf $(PYTHON_BINDINGS_DIR)/*egg-info
+	-rm -f *.so* $(SRC_DIR)/*.o
