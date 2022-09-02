@@ -28,8 +28,6 @@
 #include "_log.h"
 #include "include/public/pwr_management.h"
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-
 #define	DISABLED	0
 #define	ENABLED		1
 

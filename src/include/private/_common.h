@@ -25,6 +25,10 @@ extern "C" {
 
 #include "common.h"
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+
 #define READ_PATH					"cat %s"
 #define READ_PLATFORM					"cat %s | grep ,imx"
 

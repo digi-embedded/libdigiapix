@@ -28,7 +28,6 @@
 #include "common.h"
 
 #define DEFAULT_DIGIAPIX_CFG_FILE	"/etc/libdigiapix.conf"
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define PLATFORM_PATH				"/proc/device-tree/compatible"
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
