@@ -47,6 +47,7 @@ SRCS =  $(SRC_DIR)/adc.c \
 	$(SRC_DIR)/common.c \
 	$(SRC_DIR)/gpio.c \
 	$(SRC_DIR)/i2c.c \
+	$(SRC_DIR)/_network.c \
 	$(SRC_DIR)/network.c \
 	$(SRC_DIR)/process.c \
 	$(SRC_DIR)/pwm.c \
@@ -78,6 +79,12 @@ SRCS += $(SRC_DIR)/can.c \
 PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/can.h
 CFLAGS += $(shell pkg-config --cflags libsocketcan)
 LDLIBS += $(shell pkg-config --libs libsocketcan)
+endif
+
+ifeq ($(CONFIG_DISABLE_WIFI),)
+SRCS += $(SRC_DIR)/util.c \
+	$(SRC_DIR)/wifi.c
+PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/wifi.h
 endif
 
 OBJS = $(SRCS:.c=.o)

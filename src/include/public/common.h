@@ -31,6 +31,10 @@ extern "C" {
 #define IFNAMSIZ		16
 #endif
 
+#ifndef IW_ESSID_MAX_SIZE
+#define IW_ESSID_MAX_SIZE	32
+#endif
+
 /**
  * ldx_set_log_level() - Set the new log level
  *

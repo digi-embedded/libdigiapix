@@ -28,22 +28,14 @@
 #include <unistd.h>
 
 #include "_log.h"
+#include "_network.h"
 #include "network.h"
 #include "process.h"
 
-#define MAX_DNS_ADDRESSES	2
-
 #define CMD_GET_GATEWAY		"route -n | grep %s | grep 'UG[ \t]' | awk '{print $2}'"
 #define CMD_IS_DHCP		"ip route | grep %s | grep default | awk '{print $7}'"
-#define CMD_GET_DNS		"nmcli -g IP4.DNS dev show %s"
-#define CMD_IFACE_STATE		"nmcli -g GENERAL.STATE dev show %s | awk -F'[()]' '{print $2}'"
-#define CMD_ENABLE		"nmcli device %s %s"
-#define CMD_CONN_MOD		"nmcli con mod %s"
-#define CMD_CONN_MOD_METHOD	" ipv4.method %s"
-#define CMD_CONN_MOD_IP		" ipv4.addresses %d.%d.%d.%d/%d"
-#define CMD_CONN_MOD_GATEWAY	" ipv4.gateway %d.%d.%d.%d"
-#define CMD_CONN_ADD_DNS	" +ipv4.dns %d.%d.%d.%d"
-#define CMD_CONN_DEL_DNS	" -ipv4.dns %d.%d.%d.%d"
+#define CMD_GET_DNS		"nmcli -g IP4.DNS device show %s"
+#define CMD_IFACE_STATE		"nmcli -g GENERAL.STATE device show %s | awk -F'[()]' '{print $2}'"
 
 #define UNKOWN_CODE	"Unknown network state error"
 
@@ -63,67 +55,6 @@ static const char* net_state_error_descs[] = {
 	"Interface not configurable",
 	"Unable to configure network interface",
 };
-
-
-/*
- * is_valid_ip() - Check if provided IP is valid
- *
- * @ip:	IP to verify.
- *
- * Return: True if valid, false otherwise.
- */
-static bool is_valid_ip(uint8_t ip[IPV4_GROUPS])
-{
-	if (ip == NULL)
-		return false;
-
-	return ip[3] + (ip[2] << 8) + (ip[1] << 16) + (ip[0] << 24) != 0;
-}
-
-/*
- * is_valid_netmask() - Check if provided network mask is valid
- *
- * @netmask:	Network mask to verify.
- *
- * Return: True if valid, false otherwise.
- */
-static bool is_valid_netmask(uint8_t netmask[IPV4_GROUPS])
-{
-	uint32_t nm;
-
-	if (netmask == NULL)
-		return false;
-
-	nm = netmask[3] | (netmask[2] << 8) | (netmask[1] << 16) | (netmask[0] << 24);
-	if (nm == 0)
-		return false;
-
-	return (nm & (~nm >> 1)) == 0;
-}
-
-/*
- * get_cidr() - Returns the CIDR of a network mask
- *
- * @netmask:	Network mask to get its CIDR.
- *
- * Return: The CIDR, -1 if error.
- */
-static int get_cidr(uint8_t netmask[IPV4_GROUPS])
-{
-	int cidr = 0;
-	uint32_t nm;
-
-	if (!is_valid_netmask(netmask))
-		return -1;
-
-	nm = netmask[3] | (netmask[2] << 8) | (netmask[1] << 16) | (netmask[0] << 24);
-	while (nm) {
-		cidr += (nm & 0x01);
-		nm >>= 1;
-	}
-
-	return cidr;
-}
 
 /*
  * get_socket() - Opens a socket
@@ -602,7 +533,7 @@ net_state_error_t ldx_net_get_iface_state(const char *iface_name, net_state_t *n
 		if (ret == NET_STATE_ERROR_NONE)
 			ret = tmp_ret;
 
-		if (tmp_ret == NET_STATE_ERROR_NONE && is_valid_ip(net_state->ipv4)) {
+		if (tmp_ret == NET_STATE_ERROR_NONE && _is_valid_ip(net_state->ipv4)) {
 			/* Get Broadcast address */
 			memset(&ifr, 0, sizeof(ifr));
 			if (net_ioctl(sock, iface_name, SIOCGIFBRDADDR, &ifr) >= 0) {
@@ -694,28 +625,10 @@ done:
 net_state_error_t ldx_net_set_config(net_config_t net_cfg)
 {
 	char *iface_name = net_cfg.name;
-	net_state_error_t ret = NET_STATE_ERROR_CONFIG;
 	net_state_t net_state;
-	uint8_t *dns[] = { net_cfg.dns1, net_cfg.dns2 };
-	uint8_t *del_dns[] = { NULL, NULL };
-	char *cmd = NULL, *resp = NULL, *tmp = NULL, *enable_cmd = NULL;
-	int rc, len, i, valid_dns = 0;
-
-	if (!ldx_net_iface_exists(iface_name)) {
-		ret = NET_STATE_ERROR_NO_EXIST;
-		log_debug("%s: Unable to set network config of '%s': %s",
-			  __func__, iface_name, ldx_net_code_to_str(ret));
-		return ret;
-	}
-
-	if (net_cfg.set_ip && !is_valid_ip(net_cfg.ipv4))
-		ret = NET_STATE_ERROR_IP;
-
-	if (ret == NET_STATE_ERROR_NONE && net_cfg.set_netmask && !is_valid_netmask(net_cfg.netmask))
-		ret = NET_STATE_ERROR_NETMASK;
-
-	if (ret == NET_STATE_ERROR_NONE && net_cfg.set_gateway && !is_valid_ip(net_cfg.gateway))
-		ret = NET_STATE_ERROR_GATEWAY;
+	char *cmd = NULL, *resp = NULL;
+	int rc;
+	net_state_error_t ret = _net_check_cfg(net_cfg, &net_state);
 
 	if (ret != NET_STATE_ERROR_NONE) {
 		log_debug("%s: Unable to set network config of '%s': %s",
@@ -723,202 +636,13 @@ net_state_error_t ldx_net_set_config(net_config_t net_cfg)
 		return ret;
 	}
 
-	ret = ldx_net_get_iface_state(iface_name, &net_state);
-	if (ret != NET_STATE_ERROR_NONE && ret != NET_STATE_ERROR_GATEWAY
-		&& ret != NET_STATE_ERROR_DNS && ret != NET_STATE_ERROR_MTU) {
-		log_debug("%s: Unable to set network config for '%s': Cannot read current state",
-			  __func__, iface_name);
-		return ret;
-	}
+	ret = _net_get_cfg_cmd(net_cfg, net_state, false, NULL, &cmd);
+	if (ret != NET_STATE_ERROR_NONE)
+		goto done;
 
-	if (net_state.status == NET_STATUS_UNMANAGED || net_state.status == NET_STATUS_UNAVAILABLE) {
-		ret = NET_STATE_ERROR_NOT_CONFIG;
-		log_debug("%s: Unable to set network config of '%s': %s",
-			  __func__, iface_name, ldx_net_code_to_str(ret));
-		return ret;
-	}
-
-	if (net_cfg.n_dns > MAX_DNS_ADDRESSES) {
-		log_warning("%s: Maximum number of DNS to configure %d",
-			    __func__, MAX_DNS_ADDRESSES);
-		net_cfg.n_dns = 2;
-	}
-
-	for (i = 0; i < net_cfg.n_dns; i++) {
-		if (is_valid_ip(dns[i]))
-			valid_dns++;
-	}
-	if (valid_dns != net_cfg.n_dns) {
-		ret = NET_STATE_ERROR_DNS;
-		log_debug("%s: Unable to set network config for '%s': %s",
-			  __func__, iface_name, ldx_net_code_to_str(ret));
-		return ret;
-	}
-
-	if (net_cfg.n_dns > 0)
-		del_dns[0] = net_state.dns1;
-	if (net_cfg.n_dns > 1)
-		del_dns[1] = net_state.dns2;
-
-	if (net_cfg.is_dhcp != NET_ENABLED_ERROR
-		|| net_cfg.set_ip || net_cfg.set_netmask
-		|| net_cfg.set_gateway || valid_dns) {
-		len = snprintf(NULL, 0, CMD_CONN_MOD, iface_name);
-		cmd = calloc(len + 1, sizeof(*cmd));
-		if (cmd == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			return ret;
-		}
-		sprintf(cmd, CMD_CONN_MOD, iface_name);
-	}
-
-	/* Connection method: static/DHCP */
-	if (net_cfg.is_dhcp != NET_ENABLED_ERROR) {
-		len = snprintf(NULL, 0, CMD_CONN_MOD_METHOD,
-			net_cfg.is_dhcp == NET_ENABLED ? "auto ipv4.address \"\" ipv4.gateway \"\"" : "manual");
-		tmp = realloc(cmd, (strlen(cmd) + len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		sprintf(cmd + strlen(cmd), CMD_CONN_MOD_METHOD,
-			net_cfg.is_dhcp == NET_ENABLED ? "auto ipv4.address \"\" ipv4.gateway \"\"" : "manual");
-	}
-
-	/* IP and netmask configuration */
-	if (net_cfg.set_ip || net_cfg.set_netmask) {
-		uint8_t *ip = net_cfg.ipv4;
-		uint8_t *netmask = net_cfg.netmask;
-		int cidr = -1;
-
-		if (!net_cfg.set_ip) {
-			ip = net_state.ipv4;
-			if (!is_valid_ip(ip)) {
-				log_debug("%s: Unable to set network config for '%s': Invalid IP",
-					  __func__, iface_name);
-				return NET_STATE_ERROR_IP;
-			}
-		}
-
-		if (!net_cfg.set_netmask) {
-			netmask = net_state.netmask;
-			if (!is_valid_ip(netmask)) {
-				log_debug("%s: Unable to set network config for '%s': Invalid network mask",
-					  __func__, iface_name);
-				return NET_STATE_ERROR_NETMASK;
-			}
-		}
-
-		cidr = get_cidr(netmask);
-
-		len = snprintf(NULL, 0, CMD_CONN_MOD_IP, ip[0], ip[1], ip[2], ip[3], cidr);
-		tmp = realloc(cmd, (strlen(cmd) + len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		sprintf(cmd + strlen(cmd), CMD_CONN_MOD_IP, ip[0], ip[1], ip[2], ip[3], cidr);
-	}
-
-	/* Gateway */
-	if (net_cfg.set_gateway) {
-		uint8_t *gateway = net_cfg.gateway;
-
-		len = snprintf(NULL, 0, CMD_CONN_MOD_GATEWAY,
-			gateway[0], gateway[1], gateway[2], gateway[3]);
-		tmp = realloc(cmd, (strlen(cmd) + len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		sprintf(cmd + strlen(cmd), CMD_CONN_MOD_GATEWAY,
-			gateway[0], gateway[1], gateway[2], gateway[3]);
-	}
-
-	/* DNS */
-	for (i = 0; i < net_cfg.n_dns; i++) {
-		if (!is_valid_ip(dns[i]))
-			continue;
-
-		/* Add new DNS */
-		len = snprintf(NULL, 0, CMD_CONN_ADD_DNS,
-			dns[i][0], dns[i][1], dns[i][2], dns[i][3]);
-		tmp = realloc(cmd, (strlen(cmd) + len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		sprintf(cmd + strlen(cmd), CMD_CONN_ADD_DNS,
-			dns[i][0], dns[i][1], dns[i][2], dns[i][3]);
-
-		/* Remove old DNS */
-		if (!is_valid_ip(del_dns[0]))
-			continue;
-
-		len = snprintf(NULL, 0, CMD_CONN_DEL_DNS,
-			del_dns[i][0], del_dns[i][1], del_dns[i][2], del_dns[i][3]);
-		tmp = realloc(cmd, (strlen(cmd) + len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		sprintf(cmd + strlen(cmd), CMD_CONN_DEL_DNS,
-			del_dns[i][0], del_dns[i][1], del_dns[i][2], del_dns[i][3]);
-	}
-
-	/* Enable/disable the interface */
-	if ((net_state.status == NET_STATUS_CONNECTED && net_cfg.status != NET_STATUS_DISCONNECTED)
-		|| (net_state.status != NET_STATUS_CONNECTED && net_cfg.status == NET_STATUS_CONNECTED))
-		enable_cmd = "connect";
-	else if (net_state.status != NET_STATUS_DISCONNECTED && net_cfg.status == NET_STATUS_DISCONNECTED)
-		enable_cmd = "disconnect";
-
-	if (enable_cmd != NULL) {
-		bool empty_cmd = (cmd == NULL);
-
-		len = snprintf(NULL, 0, CMD_ENABLE, enable_cmd, iface_name);
-		if (!empty_cmd)
-			len = len + strlen(cmd) + 4; /* ' && ' */
-
-		tmp = realloc(cmd, (len + 1) * sizeof(*cmd));
-		if (tmp == NULL) {
-			ret = NET_STATE_ERROR_NO_MEM;
-			log_debug("%s: Unable to set network config of '%s': %s",
-				  __func__, iface_name, ldx_net_code_to_str(ret));
-			goto done;
-		}
-
-		cmd = tmp;
-		if (!empty_cmd)
-			sprintf(cmd + strlen(cmd), " && " CMD_ENABLE, enable_cmd, iface_name);
-		else
-			sprintf(cmd, CMD_ENABLE, enable_cmd, iface_name);
-	}
-
+	log_debug("nmcli cmd: %s\n", cmd);
 	rc = ldx_process_execute_cmd(cmd, &resp, 30);
-	if (rc != 0 || resp == NULL) {
+	if (rc != 0) {
 		if (rc == 127) /* Command not found */
 			log_debug("%s: 'nmcli' not found", __func__);
 		else if (resp != NULL)
