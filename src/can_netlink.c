@@ -15,7 +15,6 @@
  */
 
 #include <errno.h>
-#include <fcntl.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <linux/can/error.h>
@@ -23,11 +22,7 @@
 #include <linux/rtnetlink.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 
 #include "can.h"
 #include "_can.h"

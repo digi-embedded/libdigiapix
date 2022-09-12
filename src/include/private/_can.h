@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Digi International Inc.
+ * Copyright 2018-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,8 +21,10 @@
 extern "C" {
 #endif
 
+#include <net/if.h>
+#include <pthread.h>
 #include <sys/select.h>
-
+#include <sys/time.h>
 /*
  * Define _UAPI_CAN_NETLINK_H to avoid 'libsocketcan.h' including
  * the libsocketcan specific 'can_netlink.h' and use the standard
@@ -30,6 +32,7 @@ extern "C" {
  */
 #define _UAPI_CAN_NETLINK_H
 #include <libsocketcan.h>
+
 #include "_list.h"
 
 /**

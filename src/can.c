@@ -17,8 +17,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/can/error.h>
+#include <linux/can/raw.h>
 #include <linux/net_tstamp.h>
-#include <pthread.h>
+#include <net/if.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
