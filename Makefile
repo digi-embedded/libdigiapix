@@ -77,6 +77,7 @@ SRCS += $(SRC_DIR)/bluetooth.c
 PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/bluetooth.h
 CFLAGS += $(shell pkg-config --cflags bluez)
 LDLIBS += $(shell pkg-config --libs bluez)
+PYMODULES += bluetooth
 endif
 
 ifeq ($(CONFIG_DISABLE_CAN),)
