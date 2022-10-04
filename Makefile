@@ -22,10 +22,16 @@ MINOR := 0
 REVISION := 0
 VERSION := $(MAJOR).$(MINOR).$(REVISION)
 
+PYTHON_BIN ?= python3
+
+BINDINGS_DIR = bindings
+BUILD_DIR = build
+DIST_DIR = dist
 SRC_DIR = src
 HEADERS_DIR = $(SRC_DIR)/include
 HEADERS_PRIVATE_DIR = $(HEADERS_DIR)/private
 HEADERS_PUBLIC_DIR = $(HEADERS_DIR)/public
+PYTHON_BINDINGS_DIR = $(BINDINGS_DIR)/python
 
 INSTALL_HEADERS_DIR = /usr/include/lib${NAME}
 
@@ -50,6 +56,9 @@ lib$(NAME).so: lib$(NAME).so.$(VERSION)
 lib$(NAME).so.$(VERSION): $(OBJS)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
+python-bindings: $(PYTHON_BINDINGS_DIR)/setup.py lib$(NAME).so
+	cd $(PYTHON_BINDINGS_DIR); $(PYTHON_BIN) setup.py bdist_wheel
+
 .PHONY: install
 install: lib$(NAME).so
 	# Install library
@@ -64,6 +73,13 @@ install: lib$(NAME).so
 	install -d $(DESTDIR)$(INSTALL_HEADERS_DIR)
 	install -m 0644 $(HEADERS_PUBLIC_DIR)/*.h $(DESTDIR)$(INSTALL_HEADERS_DIR)/
 
+install-python-bindings: python-bindings install
+	# Install Python module
+	$(PYTHON_BIN) -m pip install --prefix $(DESTDIR)/usr ${PYTHON_BINDINGS_DIR}/${DIST_DIR}/*.whl
+
 .PHONY: clean
 clean:
 	-rm -f *.so* $(OBJS)
+	-rm -rf $(PYTHON_BINDINGS_DIR)/$(DIST_DIR)
+	-rm -rf $(PYTHON_BINDINGS_DIR)/$(BUILD_DIR)
+	-rm -rf $(PYTHON_BINDINGS_DIR)/*egg-info
