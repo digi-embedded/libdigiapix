@@ -21,8 +21,3 @@ class DigiAPIXException(Exception):
     <https://docs.python.org/2/library/exceptions.html?highlight=exceptions.exception#exceptions.Exception>`_.
     """
 
-
-class GPIOException(DigiAPIXException):
-    """
-    Exception thrown when an error occurs working with GPIOs
-    """

@@ -18,7 +18,7 @@ from ctypes import c_char_p, c_int, c_ubyte, c_uint32, c_void_p, CFUNCTYPE, POIN
 
 from digi.apix import library
 from digi.apix.common import RequestMode
-from digi.apix.exceptions import GPIOException
+from digi.apix.exceptions import DigiAPIXException
 
 # Constants.
 _ERROR_ACTIVE_MODE = "Active mode must be a valid GPIOActiveMode entry"
@@ -35,6 +35,12 @@ _IRQ_CALLBACK = CFUNCTYPE(c_int, c_void_p)
 
 # Variables.
 _libdigiapix = None
+
+
+class GPIOException(DigiAPIXException):
+    """
+    Exception thrown when an error occurs working with GPIOs
+    """
 
 
 class GPIOMode(Enum):
