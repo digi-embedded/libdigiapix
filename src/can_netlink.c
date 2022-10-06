@@ -141,11 +141,28 @@ int ldx_can_stop(const can_if_t *cif)
 				  __func__, cif->name);
 			return -CAN_ERROR_NL_GET_STATE;
 		}
-		/* Check if the interface is down */
-		if (state != CAN_STATE_ERROR_ACTIVE) {
-			log_error("%s: Unexpected state %d, in %s interface",
-				  __func__, state, cif->name);
+
+		/* Check interface state */
+		switch(state) {
+		case CAN_STATE_ERROR_ACTIVE:
+			log_error("%s: CAN error state CAN_STATE_ERROR_ACTIVE",
+				 __func__);
 			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_ERROR_WARNING:
+			log_error("%s: CAN error state CAN_STATE_ERROR_WARNING",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_ERROR_PASSIVE:
+			log_error("%s: CAN error state CAN_STATE_ERROR_PASSIVE",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_BUS_OFF:
+			log_error("%s: CAN error state CAN_STATE_BUS_OFF",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_SLEEPING:
+			log_info("%s: CAN state %d (Sleeping), in %s interface",
+				 __func__, state, cif->name);
 		}
 	}
 
@@ -174,10 +191,27 @@ int ldx_can_restart(const can_if_t *cif)
 			return -CAN_ERROR_NL_GET_STATE;
 		}
 
-		if (state != CAN_STATE_ERROR_ACTIVE) {
-			log_error("%s: Unexpected state %d, in %s interface",
-				  __func__, state, cif->name);
+		/* Check interface state */
+		switch(state) {
+		case CAN_STATE_ERROR_ACTIVE:
+			log_error("%s: CAN error state CAN_STATE_ERROR_ACTIVE",
+				 __func__);
 			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_ERROR_WARNING:
+			log_error("%s: CAN error state CAN_STATE_ERROR_WARNING",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_ERROR_PASSIVE:
+			log_error("%s: CAN error state CAN_STATE_ERROR_PASSIVE",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_BUS_OFF:
+			log_error("%s: CAN error state CAN_STATE_BUS_OFF",
+				 __func__);
+			return -CAN_ERROR_NL_STATE_MISSMATCH;
+		case CAN_STATE_SLEEPING:
+			log_info("%s: CAN state %d (Sleeping), in %s interface",
+				 __func__, state, cif->name);
 		}
 	}
 
