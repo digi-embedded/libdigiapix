@@ -91,6 +91,7 @@ ifeq ($(CONFIG_DISABLE_WIFI),)
 SRCS += $(SRC_DIR)/util.c \
 	$(SRC_DIR)/wifi.c
 PUBLIC_HEADERS += $(HEADERS_PUBLIC_DIR)/wifi.h
+PYMODULES += wifi
 endif
 
 OBJS = $(SRCS:.c=.o)
