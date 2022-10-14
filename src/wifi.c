@@ -397,9 +397,11 @@ wifi_state_error_t ldx_wifi_get_iface_state(const char *iface_name, wifi_state_t
 	if (ret == WIFI_STATE_ERROR_NONE)
 		ret = err;
 
-	err = get_sec_mode(iface_name, &wifi_state->sec_mode);
-	if (ret == WIFI_STATE_ERROR_NONE)
-		ret = err;
+	if (wifi_state->net_state.status == NET_STATUS_CONNECTED) {
+		err = get_sec_mode(iface_name, &wifi_state->sec_mode);
+		if (ret == WIFI_STATE_ERROR_NONE)
+			ret = err;
+	}
 done:
 	if (sock > -1)
 		close(sock);
