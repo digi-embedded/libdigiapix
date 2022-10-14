@@ -642,15 +642,17 @@ net_state_error_t ldx_net_set_config(net_config_t net_cfg)
 
 	log_debug("nmcli cmd: %s\n", cmd);
 	rc = ldx_process_execute_cmd(cmd, &resp, 30);
-	if (rc != 0) {
-		if (rc == 127) /* Command not found */
+	if (rc != 0
+		|| (resp != NULL && strncmp(CMD_ERROR_PREFIX, resp, strlen(CMD_ERROR_PREFIX)) == 0)) {
+		if (rc == 127) { /* Command not found */
 			log_debug("%s: 'nmcli' not found", __func__);
-		else if (resp != NULL)
+		} else if (resp != NULL) {
 			log_debug("%s: Unable to set network config for '%s': %s",
 				  __func__, iface_name, resp);
-		else
+		} else {
 			log_debug("%s: Unable to set network config for '%s'",
 				  __func__, iface_name);
+		}
 		ret = NET_STATE_ERROR_CONFIG;
 		goto done;
 	}

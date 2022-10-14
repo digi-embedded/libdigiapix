@@ -513,15 +513,17 @@ wifi_state_error_t ldx_wifi_set_config(wifi_config_t wifi_cfg)
 
 	log_debug("nmcli cmd: %s\n", cmd);
 	rc = ldx_process_execute_cmd(cmd, &resp, 30);
-	if (rc != 0) {
-		if (rc == 127) /* Command not found */
+	if (rc != 0
+		|| (resp != NULL && strncmp(CMD_ERROR_PREFIX, resp, strlen(CMD_ERROR_PREFIX)) == 0)) {
+		if (rc == 127) { /* Command not found */
 			log_debug("%s: 'nmcli' not found", __func__);
-		else if (resp != NULL)
+		} else if (resp != NULL) {
 			log_debug("%s: Unable to set config for '%s': %s",
 				  __func__, iface_name, resp);
-		else
+		} else {
 			log_debug("%s: Unable to set config for '%s'",
 				  __func__, iface_name);
+		}
 		ret = WIFI_STATE_ERROR_CONFIG;
 		goto done;
 	}

@@ -25,6 +25,8 @@ extern "C" {
 
 #define MAX_DNS_ADDRESSES	2
 
+#define CMD_ERROR_PREFIX	"Error:"
+
 /*
  * is_valid_ip() - Check if provided IP is valid
  *
