@@ -11,13 +11,12 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-from enum import Enum
 
 from ctypes import c_bool, c_char, c_char_p, c_int, c_uint8, c_uint32, POINTER, Structure
 from ipaddress import IPv4Address, IPv4Interface
 
 from digi.apix import library
-from digi.apix.common import MacAddress, INTERFACE_NAME_SIZE, MAC_ADDRESS_GROUPS, MAX_IFACES
+from digi.apix.common import _AbstractEnum, MacAddress, INTERFACE_NAME_SIZE, MAC_ADDRESS_GROUPS, MAX_IFACES
 from digi.apix.exceptions import DigiAPIXException
 
 # Constants.
@@ -33,7 +32,7 @@ class NetworkException(DigiAPIXException):
     """
 
 
-class IPMode(Enum):
+class IPMode(_AbstractEnum):
     """
     Enumeration class listing all the IP modes.
     """
@@ -50,49 +49,10 @@ class IPMode(Enum):
             code (Integer): IP mode code.
             description (String): IP mode description.
         """
-        self.__code = code
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the IP mode code.
-
-        Returns:
-            Integer: IP mode code.
-        """
-        return self.__code
-
-    @property
-    def description(self):
-        """
-        Returns the IP mode description.
-
-        Returns:
-            String: IP mode description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the IP mode corresponding to the given code.
-
-        Args:
-            code (Integer): IP mode code.
-
-        Returns:
-            :class:`.IPMode`: IP mode corresponding to the given code,
-                `None` if not found.
-        """
-        for mode in cls:
-            if code == mode.code:
-                return mode
-
-        return None
+        super().__init__(code, "", description)
 
 
-class NetStatus(Enum):
+class NetStatus(_AbstractEnum):
     """
     Enumeration class listing all network status.
     """
@@ -110,46 +70,7 @@ class NetStatus(Enum):
             code (Integer): Network status code.
             description (String): Network status description.
         """
-        self.__code = code
-        self.__desc = description
-
-    @property
-    def code(self):
-        """
-        Returns the network status code.
-
-        Returns:
-            Integer: Network status code.
-        """
-        return self.__code
-
-    @property
-    def description(self):
-        """
-        Returns the network status description.
-
-        Returns:
-            String: Network status description.
-        """
-        return self.__desc
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the network status corresponding to the given code.
-
-        Args:
-            code (Integer): Network status code.
-
-        Returns:
-            :class:`.NetStatus`: Network status corresponding to the given code,
-                `None` if not found.
-        """
-        for network_status in cls:
-            if code == network_status.code:
-                return network_status
-
-        return None
+        super().__init__(code, "", description)
 
 
 class NetworkProfile:
@@ -406,7 +327,7 @@ class NetworkProfile:
         return cfg_struct
 
 
-class _NetworkError(Enum):
+class _NetworkError(_AbstractEnum):
     """
     Enumeration class listing all the network errors.
     """
@@ -434,57 +355,7 @@ class _NetworkError(Enum):
             title (String): Network error title.
             description (String): Network error description.
         """
-        self.__code = code
-        self.__title = title
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the network error code.
-
-        Returns:
-            Integer: Network error code.
-        """
-        return self.__code
-
-    @property
-    def title(self):
-        """
-        Returns the network error title.
-
-        Returns:
-            String: Network error title.
-        """
-        return self.__title
-
-    @property
-    def description(self):
-        """
-        Returns the network error description.
-
-        Returns:
-            String: Network error description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the network error corresponding to the given code.
-
-        Args:
-            code (Integer): Network error code.
-
-        Returns:
-            :class:`._NetworkError`: Network error corresponding to the given
-                code, `None` if not found.
-        """
-        for network_error in cls:
-            if code == network_error.code:
-                return network_error
-
-        return None
+        super().__init__(code, title, description)
 
 
 class _NetNamesListStruct(Structure):

@@ -12,12 +12,10 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from enum import Enum
-
 from ctypes import c_char_p, c_int, c_ubyte, c_uint32, c_void_p, CFUNCTYPE, POINTER, Structure
 
 from digi.apix import library
-from digi.apix.common import RequestMode
+from digi.apix.common import _AbstractEnum, RequestMode
 from digi.apix.exceptions import DigiAPIXException
 
 # Constants.
@@ -43,7 +41,7 @@ class GPIOException(DigiAPIXException):
     """
 
 
-class GPIOMode(Enum):
+class GPIOMode(_AbstractEnum):
     """
     Enumeration class listing all the GPIO modes.
     """
@@ -67,58 +65,10 @@ class GPIOMode(Enum):
             title (String): GPIO mode title.
             description (String): GPIO mode description.
         """
-        self.__code = code
-        self.__title = title
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the GPIO mode code.
-
-        Returns:
-            Integer: GPIO mode code.
-        """
-        return self.__code
-
-    @property
-    def title(self):
-        """
-        Returns the GPIO mode title.
-
-        Returns:
-            String: GPIO mode title.
-        """
-        return self.__title
-
-    @property
-    def description(self):
-        """
-        Returns the GPIO mode description.
-
-        Returns:
-            String: GPIO mode description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the GPIO mode corresponding to the given code.
-
-        Args:
-            code (Integer): GPIO mode code.
-
-        Returns:
-            :class:`.GPIOMode`: GPIO mode corresponding to the given code, `None` if not found.
-        """
-        for gpio_mode in cls:
-            if code == gpio_mode.code:
-                return gpio_mode
-        return None
+        super().__init__(code, title, description)
 
 
-class GPIOValue(Enum):
+class GPIOValue(_AbstractEnum):
     """
     Enumeration class listing all the GPIO values.
     """
@@ -133,47 +83,10 @@ class GPIOValue(Enum):
             code (Integer): GPIO value code.
             description (String): GPIO value description.
         """
-        self.__code = code
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the GPIO value code.
-
-        Returns:
-            Integer: GPIO value code.
-        """
-        return self.__code
-
-    @property
-    def description(self):
-        """
-        Returns the GPIO value description.
-
-        Returns:
-            String: GPIO value description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the GPIO value corresponding to the given code.
-
-        Args:
-            code (Integer): GPIO value code.
-
-        Returns:
-            :class:`.GPIOValue`: GPIO value corresponding to the given code, `None` if not found.
-        """
-        for gpio_value in cls:
-            if code == gpio_value.code:
-                return gpio_value
-        return None
+        super().__init__(code, "", description)
 
 
-class GPIOActiveMode(Enum):
+class GPIOActiveMode(_AbstractEnum):
     """
     Enumeration class listing all the GPIO active modes.
     """
@@ -188,45 +101,7 @@ class GPIOActiveMode(Enum):
             code (Integer): GPIO active mode code.
             description (String): GPIO active mode description.
         """
-        self.__code = code
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the GPIO active mode code.
-
-        Returns:
-            Integer: GPIO active mode code.
-        """
-        return self.__code
-
-    @property
-    def description(self):
-        """
-        Returns the GPIO active mode description.
-
-        Returns:
-            String: GPIO active mode description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the GPIO active mode corresponding to the given code.
-
-        Args:
-            code (Integer): GPIO active mode code.
-
-        Returns:
-            :class:`.GPIOActiveMode`: GPIO active mode corresponding to the given code, `None` if
-                                      not found.
-        """
-        for gpio_active_mode in cls:
-            if code == gpio_active_mode.code:
-                return gpio_active_mode
-        return None
+        super().__init__(code, "", description)
 
 
 class _GPIOStruct(Structure):

@@ -190,7 +190,74 @@ class MacAddress:
         return bytearray(self.__address)
 
 
-class RequestMode(Enum):
+class _AbstractEnum(Enum):
+    """
+    Abstract enumeration class.
+    """
+
+    def __init__(self, code, title, description):
+        """
+        Class constructor. Instantiates a new `_AbstractEnum` entry with the provided parameters.
+
+        Args:
+            code (Integer): Enum entry code.
+            title (String): Enum entry title.
+            description (String): Enum entry description.
+        """
+        self.__code = code
+        self.__title = title
+        self.__description = description
+
+    @property
+    def code(self):
+        """
+        Returns the enum entry code.
+
+        Returns:
+            Integer: Enum entry code.
+        """
+        return self.__code
+
+    @property
+    def title(self):
+        """
+        Returns the enum entry title.
+
+        Returns:
+            String: Enum entry title.
+        """
+        return self.__title
+
+    @property
+    def description(self):
+        """
+        Returns the enum entry description.
+
+        Returns:
+            String: Enum entry description.
+        """
+        return self.__description
+
+    @classmethod
+    def get(cls, code):
+        """
+        Returns the enum entry corresponding to the given code.
+
+        Args:
+            code (Integer): Enum entry code.
+
+        Returns:
+            :class:`._AbstractEnum`: Enum entry corresponding to the given
+                code, `None` if not found.
+        """
+        for enum_entry in cls:
+            if code == enum_entry.code:
+                return enum_entry
+
+        return None
+
+
+class RequestMode(_AbstractEnum):
     """
     Enumeration class listing all the request modes.
     """
@@ -207,53 +274,4 @@ class RequestMode(Enum):
             title (String): Request mode title.
             description (String): Request mode description.
         """
-        self.__code = code
-        self.__title = title
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the Request mode code.
-
-        Returns:
-            Integer: Request mode code.
-        """
-        return self.__code
-
-    @property
-    def title(self):
-        """
-        Returns the Request mode title.
-
-        Returns:
-            String: Request mode title.
-        """
-        return self.__title
-
-    @property
-    def description(self):
-        """
-        Returns the Request mode description.
-
-        Returns:
-            String: Request mode description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the Request mode corresponding to the given code.
-
-        Args:
-            code (Integer): Request mode code.
-
-        Returns:
-            :class:`.RequestMode`: Request mode corresponding to the given code, `None` if not
-                                   found.
-        """
-        for request_mode in cls:
-            if code == request_mode.code:
-                return request_mode
-        return None
+        super().__init__(code, title, description)

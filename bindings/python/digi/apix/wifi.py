@@ -11,12 +11,11 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-from enum import Enum
 
 from ctypes import c_bool, c_char, c_char_p, c_int, POINTER, Structure, c_double
 
 from digi.apix import library
-from digi.apix.common import INTERFACE_NAME_SIZE
+from digi.apix.common import _AbstractEnum, INTERFACE_NAME_SIZE
 from digi.apix.exceptions import DigiAPIXException
 from digi.apix.network import _NetworkError, _NetStateStruct, _NetConfigStruct, \
     _NetNamesListStruct, NetworkInterface, NetworkProfile
@@ -34,7 +33,7 @@ class WifiException(DigiAPIXException):
     """
 
 
-class SecurityMode(Enum):
+class SecurityMode(_AbstractEnum):
     """
     Enumeration class listing all security modes.
     """
@@ -53,46 +52,7 @@ class SecurityMode(Enum):
             code (Integer): Security mode code.
             description (String): Security mode description.
         """
-        self.__code = code
-        self.__description = description
-
-    @property
-    def code(self):
-        """
-        Returns the security mode code.
-
-        Returns:
-            Integer: Security mode code.
-        """
-        return self.__code
-
-    @property
-    def description(self):
-        """
-        Returns the security mode description.
-
-        Returns:
-            String: Security mode description.
-        """
-        return self.__description
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the security mode corresponding to the given code.
-
-        Args:
-            code (Integer): Security mode code.
-
-        Returns:
-            :class:`.SecurityMode`: Security mode corresponding to the given
-                code, `None` if not found.
-        """
-        for mode in cls:
-            if code == mode.code:
-                return mode
-
-        return None
+        super().__init__(code, "", description)
 
 
 class WifiProfile(NetworkProfile):
@@ -206,47 +166,18 @@ class WifiProfile(NetworkProfile):
         return cfg_struct
 
 
-class _WifiError(_NetworkError, Enum):
-    """
-    Enumeration class listing all the WiFi errors.
-    """
-    CONFIG_ERROR = (13, "Configuration error", "Unable to configure network interface")
-    RANGE_INFO = (14, "Range info error", "Error getting range information")
-    SSID = (15, "SSID error", "Error getting SSID")
-    FREQ = (16, "Frequency error", "Error getting frequency")
-    CHANNEL = (17, "Channel error", "Error getting channel")
-    SEC_MODE = (18, "Security mode", "Error getting security mode")
-
-    def __init__(self, code, title, description):
-        """
-        Class constructor. Instantiates a new `_WifiError` entry with the provided parameters.
-
-        Args:
-            code (Integer): Network error code.
-            title (String): Network error title.
-            description (String): Network error description.
-        """
-        super().__init__(code, title, description)
-
-    @classmethod
-    def get(cls, code):
-        """
-        Returns the network error corresponding to the given code.
-
-        Args:
-            code (Integer): Network error code.
-
-        Returns:
-            :class:`._WifiError`: Network error corresponding to the given
-                code, `None` if not found.
-        """
-        errors = list(_NetworkError)
-        errors.extend(list(cls))
-        for err in errors:
-            if code == err.code:
-                return err
-
-        return None
+_networkErrorEntries = [(m.name, (m.code, m.title, m.description)) for m in _NetworkError]
+_networkErrorEntries.append(("RANGE_INFO", (14, "Range info error",
+                                            "Error getting range information")))
+_networkErrorEntries.append(("SSID", (15, "SSID error",
+                                          "Error getting SSID")))
+_networkErrorEntries.append(("FREQ", (16, "Frequency error",
+                                          "Error getting frequency")))
+_networkErrorEntries.append(("CHANNEL", (17, "Channel error",
+                                             "Error getting channel")))
+_networkErrorEntries.append(("SEC_MODE", (18, "Security mode",
+                                              "Error getting security mode")))
+_WifiError = _AbstractEnum('_WifiError', _networkErrorEntries)
 
 
 class _WifiStateStruct(Structure):
