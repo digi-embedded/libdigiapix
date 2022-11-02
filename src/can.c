@@ -793,7 +793,7 @@ unreg_errh_ret:
 
 static can_cb_t *find_rxcb_by_function(const can_if_t *cif, const ldx_can_rx_cb_t cb)
 {
-	can_priv_t *pdata = cif->_data;
+	can_priv_t *pdata;
 	can_cb_t *rx_cb;
 
 	pdata = cif->_data;

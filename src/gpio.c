@@ -198,6 +198,8 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
 		gpio_t init_gpio = {gpio_alias, UNDEFINED_SYSFS_GPIO, controller_label, line, new_gpio->_data};
 
 		memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
+	} else {
+		free(controller_label);
 	}
 
 	return new_gpio;
@@ -359,7 +361,7 @@ int ldx_gpio_set_debounce(gpio_t *gpio, unsigned int usec)
 
 	if (gpio->kernel_number == UNDEFINED_SYSFS_GPIO) {
 #if defined(GPIO_SET_DEBOUNCE_IOCTL)
-		struct _gpio_t *_data = _data = gpio->_data;
+		struct _gpio_t *_data = gpio->_data;
 		struct gpioline_debounce linedebounce;
 		char chip_path[] = "/dev/gpiochipXXX";
 
@@ -809,8 +811,10 @@ gpio_irq_error_t ldx_gpio_wait_interrupt(gpio_t *gpio, int timeout)
 			rv = gpiod_line_event_wait(_data->_line, &ts);
 		switch (rv) {
 		case 1:
-			rv = gpiod_line_event_read(_data->_line, &event);
-			return GPIO_IRQ_ERROR_NONE;
+			if (gpiod_line_event_read(_data->_line, &event) == 0)
+				return GPIO_IRQ_ERROR_NONE;
+			else
+				return GPIO_IRQ_ERROR;
 		case 0:
 			log_debug("%s: Timeout waiting for interrupt on GPIO %s",
 					  __func__, show_gpio(gpio));

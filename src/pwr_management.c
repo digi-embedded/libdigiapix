@@ -309,7 +309,7 @@ available_frequencies_t ldx_cpu_get_available_freq()
 	char *available_frequencies = NULL;
 	char *cmd;
 	char *ptr;
-	available_frequencies_t freq;
+	available_frequencies_t freq = {.data = NULL,.len = 0};
 	int i = 0;
 
 	if (asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_FREQ) < 0) {
@@ -326,7 +326,12 @@ available_frequencies_t ldx_cpu_get_available_freq()
 
 	ptr = available_frequencies;
 
-	/* Count the spaces inside the returned string*/
+	/*
+	 * Count the spaces inside the returned string.
+	 *
+	 * There is an extra space at the end of the list "900000 1200000 "
+	 * so, the list of frequencies is equal to the number of ' '
+	 */
 	while (*ptr) {
 		if (*ptr == ' ') {
 			i++;
@@ -334,21 +339,20 @@ available_frequencies_t ldx_cpu_get_available_freq()
 		ptr++;
 	}
 
-	/*There is an extra space at the end of the list "900000 1200000 "
-	 * So, the list of frequencies is equal to the number of ' '*/
-	freq.data = malloc((i) * sizeof(*freq.data));
-	freq.len = i;
-	i = 0;
+	if (i)
+		freq.data = malloc((i) * sizeof(*freq.data));
+	if (!freq.data)
+		goto err_free;
 
 	ptr = strtok(available_frequencies, " ");
-
 	while (ptr != NULL) {
 		log_debug("%s: Frequency available %s", __func__, ptr);
-		freq.data[i] = atoi(ptr);
+		freq.data[freq.len] = atoi(ptr);
+		freq.len++;
 		ptr = strtok(NULL, " ");
-		i++;
 	}
 
+err_free:
 	free(available_frequencies);
 	free(cmd);
 
