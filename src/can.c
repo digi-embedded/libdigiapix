@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Digi International Inc.
+ * Copyright 2018-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,15 +14,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1
-#endif
-
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/can/error.h>
+#include <linux/can/raw.h>
 #include <linux/net_tstamp.h>
-#include <pthread.h>
+#include <net/if.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -796,7 +793,7 @@ unreg_errh_ret:
 
 static can_cb_t *find_rxcb_by_function(const can_if_t *cif, const ldx_can_rx_cb_t cb)
 {
-	can_priv_t *pdata = cif->_data;
+	can_priv_t *pdata;
 	can_cb_t *rx_cb;
 
 	pdata = cif->_data;

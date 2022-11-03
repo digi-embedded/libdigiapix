@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Digi International Inc.
+ * Copyright 2018-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,12 +21,12 @@
 extern "C" {
 #endif
 
-#include <linux/can/raw.h>
+#include <linux/can.h>
 #include <linux/can/netlink.h>
-#include <net/if.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <sys/time.h>
+
+#include "common.h"
 
 #define NLMSG_TAIL(nmsg) \
         ((struct rtattr *)(((void *) (nmsg)) + NLMSG_ALIGN((nmsg)->nlmsg_len)))

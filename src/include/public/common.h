@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,18 @@ extern "C" {
 #endif
 
 #include <syslog.h>
+
+#ifndef MAC_ADDRESS_GROUPS
+#define MAC_ADDRESS_GROUPS	6
+#endif
+
+#ifndef IFNAMSIZ
+#define IFNAMSIZ		16
+#endif
+
+#ifndef IW_ESSID_MAX_SIZE
+#define IW_ESSID_MAX_SIZE	32
+#endif
 
 /**
  * ldx_set_log_level() - Set the new log level

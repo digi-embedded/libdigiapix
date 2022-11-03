@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Digi International Inc.
+ * Copyright 2017-2022, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,8 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define _GNU_SOURCE
-
 #include <linux/version.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -28,7 +26,6 @@
 #include "common.h"
 
 #define DEFAULT_DIGIAPIX_CFG_FILE	"/etc/libdigiapix.conf"
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define PLATFORM_PATH				"/proc/device-tree/compatible"
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
@@ -237,7 +234,7 @@ static int config_get_csv_integer(const char * const group, const char * const a
  * @item: Array where the item is stored on success.
  * @index: The index of the comma-separated value to get
  *
- * Return: 0 on success, -1 on error.
+ * Return: EXIT_SUCCESS on success, EXIT_FAILURE on error.
  */
 static int config_get_csv_string(const char * const group, const char * const alias,
 				 char * const item, int index)
@@ -248,11 +245,11 @@ static int config_get_csv_string(const char * const group, const char * const al
 	const char *value = conffile_get(config->conf, group, alias, NULL);
 
 	if (value == NULL || item == NULL)
-		return -1;
+		return EXIT_FAILURE;
 
 	array = strdup(value);
 	if (array == NULL)
-		return -1;
+		return EXIT_FAILURE;
 	token = strtok(array, ",");
 
 	/* Walk through other tokens */
@@ -266,7 +263,7 @@ static int config_get_csv_string(const char * const group, const char * const al
 
 	free(array);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /**
@@ -387,8 +384,7 @@ digi_platform_t get_digi_platform()
 	char *cmd;
 	digi_platform_t platform = INVALID_PLATFORM;
 
-	asprintf(&cmd, READ_PLATFORM, PLATFORM_PATH);
-	if (!cmd) {
+	if (asprintf(&cmd, READ_PLATFORM, PLATFORM_PATH) < 0) {
 		log_error("%s: Unable to allocate memory for the command", __func__);
 		return INVALID_PLATFORM;
 	}
