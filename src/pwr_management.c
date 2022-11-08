@@ -680,6 +680,7 @@ int ldx_gpu_set_multiplier(int multiplier) {
 		ret = asprintf(&path, "%s", CC6_GPU_PATH);
 		break;
 	case CC6UL_PLATFORM:
+	case CCMP15_PLATFORM:
 		log_error("%s: This platform doesn't support GPU management", __func__);
 		return -1;
 	default:
@@ -736,6 +737,7 @@ int ldx_gpu_get_multiplier()
 		ret = asprintf(&path, "%s", CC6_GPU_PATH);
 		break;
 	case CC6UL_PLATFORM:
+	case CCMP15_PLATFORM:
 		log_error("%s: This platform doesn't support GPU management", __func__);
 		return -1;
 	default:
@@ -763,7 +765,9 @@ int ldx_gpu_get_multiplier()
 
 int ldx_gpu_set_min_multiplier(int multiplier)
 {
-	if (get_digi_platform() == CC6UL_PLATFORM) {
+	digi_platform_t platform = get_digi_platform();
+
+	if (platform == CC6UL_PLATFORM || platform == CCMP15_PLATFORM) {
 		log_error("%s: This platform doesn't support GPU management", __func__);
 		return EXIT_FAILURE;
 	}
@@ -792,9 +796,11 @@ int ldx_gpu_set_min_multiplier(int multiplier)
 
 int ldx_gpu_get_min_multiplier()
 {
-	if (get_digi_platform() == CC6UL_PLATFORM) {
+	digi_platform_t platform = get_digi_platform();
+
+	if (platform == CC6UL_PLATFORM || platform == CCMP15_PLATFORM) {
 		log_error("%s: This platform doesn't support GPU management", __func__);
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	return get_int_from_path(MIN_MULTIPLIER_PATH MIN_MULTIPLIER_ENTRY);
