@@ -49,7 +49,12 @@ pwm_t *ldx_pwm_request(unsigned int pwm_chip, unsigned int pwm_channel,
 {
 	libsoc_pwm_t *_pwm = NULL;
 	pwm_t *new_pwm = NULL;
-	pwm_t init_pwm = {NULL, pwm_chip, pwm_channel, NULL};
+	pwm_t init_pwm = {
+		.alias = NULL,
+		.chip = pwm_chip,
+		.channel = pwm_channel,
+		._data = NULL
+	};
 
 	if (check_request_mode(request_mode) != EXIT_SUCCESS) {
 		request_mode = REQUEST_SHARED;
@@ -102,8 +107,13 @@ pwm_t *ldx_pwm_request_by_alias(char const * const pwm_alias, request_mode_t req
 
 	new_pwm = ldx_pwm_request(pwm_chip_number, pwm_channel_number, request_mode);
 	if (new_pwm != NULL) {
-		pwm_t init_pwm = {pwm_alias, pwm_chip_number, pwm_channel_number,
-				((pwm_t *)new_pwm)->_data};
+		pwm_t init_pwm = {
+			.alias = pwm_alias,
+			.chip = pwm_chip_number,
+			.channel = pwm_channel_number,
+			._data = ((pwm_t *)new_pwm)->_data
+		};
+
 		memcpy(new_pwm, &init_pwm, sizeof(pwm_t));
 	}
 

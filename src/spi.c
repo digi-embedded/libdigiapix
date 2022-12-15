@@ -69,7 +69,12 @@ spi_t *ldx_spi_request(unsigned int spi_device, unsigned int spi_slave)
 {
 	libsoc_spi_t *_spi = NULL;
 	spi_t *new_spi = NULL;
-	spi_t init_spi = { NULL, spi_device, spi_slave, NULL };
+	spi_t init_spi = {
+		.alias = NULL,
+		.spi_device = spi_device,
+		.spi_slave = spi_slave,
+		._data = NULL
+	};
 
 	log_debug("%s: Requesting SPI device %d slave %d",
 		  __func__, spi_device, spi_slave);
@@ -113,8 +118,13 @@ spi_t *ldx_spi_request_by_alias(const char * const spi_alias)
 
 	new_spi = ldx_spi_request(spi_device, spi_slave);
 	if (new_spi != NULL) {
-		spi_t init_spi = {spi_alias, spi_device, spi_slave,
-				((spi_t *)new_spi)->_data};
+		spi_t init_spi = {
+			.alias = spi_alias,
+			.spi_device = spi_device,
+			.spi_slave = spi_slave,
+			._data = ((spi_t *)new_spi)->_data
+		};
+
 		memcpy(new_spi, &init_spi, sizeof(spi_t));
 	}
 

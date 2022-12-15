@@ -36,7 +36,12 @@ static float get_scale(adc_driver_t driver_type, unsigned int adc_chip);
 adc_t *ldx_adc_request(unsigned int adc_chip, unsigned int adc_channel)
 {
 	adc_t *new_adc = NULL;
-	adc_t init_adc = {NULL, adc_chip, adc_channel, NULL};
+	adc_t init_adc = {
+		.alias = NULL,
+		.chip = adc_chip,
+		.channel = adc_channel,
+		._data = NULL
+	};
 	adc_internal_t *internal_data = NULL;
 	char path[BUFF_SIZE];
 	float scale;
@@ -124,8 +129,13 @@ adc_t *ldx_adc_request_by_alias(char const * const adc_alias)
 	new_adc = ldx_adc_request(adc_chip, adc_channel);
 
 	if (new_adc != NULL) {
-		adc_t init_adc = {adc_alias, adc_chip, adc_channel,
-				((adc_t *)new_adc)->_data};
+		adc_t init_adc = {
+			.alias = adc_alias,
+			.chip = adc_chip,
+			.channel = adc_channel,
+			._data = ((adc_t *)new_adc)->_data
+		};
+
 		memcpy(new_adc, &init_adc, sizeof(adc_t));
 	}
 

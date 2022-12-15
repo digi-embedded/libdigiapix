@@ -29,7 +29,10 @@
 wd_t *ldx_watchdog_request(char const * const wd_device_file)
 {
 	wd_t *new_wd = NULL;
-	wd_t init_wd = {wd_device_file, 0};
+	wd_t init_wd = {
+		.node = wd_device_file,
+		._data = 0
+	};
 	wd_internal_t *internal_data = NULL;
 
 	if (wd_device_file == NULL || strlen(wd_device_file) <= 0) {

@@ -316,7 +316,10 @@ available_frequencies_t ldx_cpu_get_available_freq()
 	char *available_frequencies = NULL;
 	char *cmd;
 	char *ptr;
-	available_frequencies_t freq;
+	available_frequencies_t freq = {
+		.data = NULL,
+		.len = 0
+	};
 	int i = 0;
 
 	asprintf(&cmd, READ_PATH, FREQ_PATH AVALAIBLE_SCALING_FREQ);

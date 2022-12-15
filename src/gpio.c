@@ -105,7 +105,13 @@ gpio_t *ldx_gpio_request(unsigned int kernel_number, gpio_mode_t mode,
 	gpio_t *new_gpio = NULL;
 	struct _gpio_t *data = NULL;
 	gpio *internal_gpio = NULL;
-	gpio_t init_gpio = { NULL, kernel_number, NULL, -1, NULL };
+	gpio_t init_gpio = {
+		.alias = NULL,
+		.kernel_number = kernel_number,
+		.gpio_controller = NULL,
+		.gpio_line = -1,
+		._data = NULL
+	};
 
 	if (check_mode(mode) != EXIT_SUCCESS)
 		return NULL;
@@ -195,7 +201,13 @@ gpio_t *ldx_gpio_request_by_alias(const char * const gpio_alias, gpio_mode_t mod
 
 	new_gpio = ldx_gpio_request_by_controller(controller_label, line, mode);
 	if (new_gpio != NULL) {
-		gpio_t init_gpio = {gpio_alias, UNDEFINED_SYSFS_GPIO, controller_label, line, new_gpio->_data};
+		gpio_t init_gpio = {
+			.alias = gpio_alias,
+			.kernel_number = UNDEFINED_SYSFS_GPIO,
+			.gpio_controller = controller_label,
+			.gpio_line = line,
+			._data = new_gpio->_data
+		};
 
 		memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
 	}
@@ -212,7 +224,13 @@ attempt_sysfs:
 
 	new_gpio = ldx_gpio_request(kernel_number, mode, request_mode);
 	if (new_gpio != NULL) {
-		gpio_t init_gpio = {gpio_alias, kernel_number, NULL, -1, new_gpio->_data};
+		gpio_t init_gpio = {
+			.alias = gpio_alias,
+			.kernel_number = kernel_number,
+			.gpio_controller = NULL,
+			.gpio_line = -1,
+			._data = new_gpio->_data
+		};
 
 		memcpy(new_gpio, &init_gpio, sizeof(gpio_t));
 	}
@@ -228,7 +246,13 @@ gpio_t *ldx_gpio_request_by_controller(const char * const controller,
 	struct _gpio_t *data = NULL;
 	struct gpiod_chip *chip = NULL;
 	struct gpiod_line *line = NULL;
-	gpio_t init_gpio = { NULL, UNDEFINED_SYSFS_GPIO, controller, line_num, NULL };
+	gpio_t init_gpio = {
+		.alias = NULL,
+		.kernel_number = UNDEFINED_SYSFS_GPIO,
+		.gpio_controller = controller,
+		.gpio_line = line_num,
+		._data = NULL
+	};
 
 	if (check_mode(mode) != EXIT_SUCCESS)
 		return NULL;
@@ -799,7 +823,10 @@ gpio_irq_error_t ldx_gpio_wait_interrupt(gpio_t *gpio, int timeout)
 	_data = gpio->_data;
 
 	if (gpio->kernel_number == UNDEFINED_SYSFS_GPIO) {
-		struct timespec ts = { timeout / 1000, (timeout % 1000) * 1000000 };
+		struct timespec ts = {
+			.tv_sec = timeout / 1000,
+			.tv_nsec = (timeout % 1000) * 1000000
+		};
 		struct gpiod_line_event event;
 		int rv;
 
