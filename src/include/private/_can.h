@@ -67,7 +67,6 @@ typedef struct can_err_cb {
  * @maxdlen:	Maximun length of the data to transmit.
  * @maxfd:		Maximun flexible data rate.
  * @can_fds:	CAN Flexible data rate.
- * @can_tout:	CAN timeval.
  * @can_thr:		Working thread used by the library.
  * @can_thr_attr:	Working thread attribute structure.
  * @mux:			Mutex lock thread.
@@ -84,7 +83,6 @@ typedef struct {
 
 	int			maxfd;
 	fd_set			can_fds;
-	struct timeval		can_tout;
 
 	pthread_t		*can_thr;
 	pthread_attr_t		can_thr_attr;
