@@ -645,7 +645,8 @@ int ldx_can_free(can_if_t *cif)
 	pdata = cif->_data;
 	pthread_mutex_lock(&pdata->mutex);
 	pthread_mutex_destroy(&pdata->mutex);
-	pthread_cancel(*pdata->can_thr);
+	if (pdata->can_thr)
+		pthread_cancel(*pdata->can_thr);
 
 	ret = ldx_can_stop(cif);
 	if (ret)
