@@ -396,10 +396,9 @@ int ldx_can_set_ctrlmode(can_if_t *cif, struct can_ctrlmode *cm)
 			return -CAN_ERROR_NL_GET_CTRL_MODE;
 		}
 
-		ret = memcmp(cm, &cm_read, sizeof(cm_read));
-		if (ret) {
-			log_error("%s: on %s control mode set does not match with control mode read",
-					__func__, cif->name);
+		if ((cm_read.flags & cm->mask) != cm->flags) {
+			log_error("%s: on %s control mode read 0x%x ( mask 0x%x ) does not match with control mode set 0x%x",
+					__func__, cif->name, cm_read.flags, cm->mask, cm->flags);
 			return -CAN_ERROR_NL_CTRL_MISSMATCH;
 		}
 	}
