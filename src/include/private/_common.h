@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 #define READ_PATH					"cat %s"
-#define READ_PLATFORM					"cat %s | grep ,imx"
+#define READ_PLATFORM					"cat %s | grep -E ',imx|,ccmp'"
 
 
 /**
