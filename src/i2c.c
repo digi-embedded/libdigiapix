@@ -35,7 +35,11 @@ i2c_t *ldx_i2c_request(unsigned int i2c_bus)
 {
 	libsoc_i2c_t *_i2c = NULL;
 	i2c_t *new_i2c = NULL;
-	i2c_t init_i2c = { NULL, i2c_bus, NULL };
+	i2c_t init_i2c = {
+		.alias = NULL,
+		.bus = i2c_bus,
+		._data = NULL
+	};
 
 	log_debug("%s: Requesting I2C bus %d", __func__, i2c_bus);
 
@@ -69,7 +73,11 @@ i2c_t *ldx_i2c_request_by_alias(char const * const i2c_alias)
 
 	new_i2c = ldx_i2c_request((unsigned int)i2c_bus);
 	if (new_i2c != NULL) {
-		i2c_t init_i2c = {i2c_alias, i2c_bus, ((i2c_t *)new_i2c)->_data};
+		i2c_t init_i2c = {
+			.alias = i2c_alias,
+			.bus = i2c_bus,
+			._data = ((i2c_t *)new_i2c)->_data
+		};
 
 		memcpy(new_i2c, &init_i2c, sizeof(i2c_t));
 	}
