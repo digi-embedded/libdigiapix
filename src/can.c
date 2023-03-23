@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Digi International Inc.
+ * Copyright 2018-2023, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -220,12 +220,8 @@ static int ldx_can_process_tx_socket(const can_if_t *cif)
 		}
 
 		if (frame.can_id & CAN_ERR_FLAG) {
-			can_err_cb_t *err_cb;
-
-			list_for_each_entry(err_cb, &pdata->err_cb_list_head, list) {
-				if (err_cb->handler)
-					err_cb->handler(frame.can_id, NULL);
-			}
+			log_error("%s: CAN frame error", __func__);
+			ldx_can_call_err_cb(cif, frame.can_id, NULL);
 		}
 	}
 
@@ -282,12 +278,8 @@ static int ldx_can_process_rx_socket(can_if_t *cif, can_cb_t *rx_cb)
 		}
 
 		if (frame.can_id & CAN_ERR_FLAG) {
-			can_err_cb_t *err_cb;
-
-			list_for_each_entry(err_cb, &pdata->err_cb_list_head, list) {
-				if (err_cb->handler)
-					err_cb->handler(frame.can_id, NULL);
-			}
+			log_error("%s: CAN frame error", __func__);
+			ldx_can_call_err_cb(cif, frame.can_id, NULL);
 		}
 
 		if (rx_cb->handler)
