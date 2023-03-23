@@ -101,10 +101,15 @@ const char *const __can_error_str[CAN_ERROR_MAX + 1] = {
 	[CAN_ERROR_DROPPED_FRAMES]		= "Dropped frames",
 };
 
+/* Default error handler, used to log information */
 static void ldx_can_default_error_handler(int error, void *data)
 {
-	/* Default error handler, used to log information */
-	log_error("%s: error: %d, %s", __func__, error, ldx_can_strerror(error));
+	const char *err_string = ldx_can_strerror(error);
+
+	if (err_string)
+		log_error("%s: error: %d, %s", __func__, error, err_string);
+	else
+		log_error("%s: error CAN ID frame: 0x%x", __func__, error);
 }
 
 const char * ldx_can_strerror(int error)
