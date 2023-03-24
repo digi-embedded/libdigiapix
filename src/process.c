@@ -67,7 +67,7 @@ int ldx_process_execute_cmd(const char *cmd, char **resp, int timeout)
 
 	f_cmd = tmpfile();
 	if (!f_cmd) {
-		if (asprintf(resp, "Unable to execute '%s' (cmd tmpfile)", cmd) < 0)
+		if (resp != NULL && asprintf(resp, "Unable to execute '%s' (cmd tmpfile)", cmd) < 0)
 			log_error("%s: Unable to execute '%s' (cmd tmpfile): %s, %d",
 				  __func__, cmd, strerror(errno), errno);
 		return -1;
@@ -77,7 +77,7 @@ int ldx_process_execute_cmd(const char *cmd, char **resp, int timeout)
 		|| write(fileno(f_cmd), "\n", 1) < 1) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			fclose(f_cmd);
-			if (asprintf(resp, "Unable to execute '%s'", cmd)  < 0)
+			if (resp != NULL && asprintf(resp, "Unable to execute '%s'", cmd)  < 0)
 				log_error("%s: Unable to execute'%s': %s, %d",
 					  __func__, cmd, strerror(errno), errno);
 			return -1;
@@ -87,7 +87,7 @@ int ldx_process_execute_cmd(const char *cmd, char **resp, int timeout)
 	f_out = tmpfile();
 	if (!f_out) {
 		fclose(f_cmd);
-		if (asprintf(resp, "Unable to execute '%s' (out tmpfile)", cmd) < 0)
+		if (resp != NULL && asprintf(resp, "Unable to execute '%s' (out tmpfile)", cmd) < 0)
 			log_error("%s: Unable to execute '%s' (out tmpfile): %s, %d",
 				  __func__, cmd, strerror(errno), errno);
 		return -1;
@@ -110,7 +110,7 @@ int ldx_process_execute_cmd(const char *cmd, char **resp, int timeout)
 
 	fseek(f_out, 0, SEEK_SET);
 	ioctl(fileno(f_out), FIONREAD, &bytes_available);
-	if (bytes_available > 0) {
+	if (resp != NULL && bytes_available > 0) {
 		int read_rc = -1;
 
 		*resp = calloc(bytes_available + 1, sizeof(char));
@@ -118,14 +118,14 @@ int ldx_process_execute_cmd(const char *cmd, char **resp, int timeout)
 		if (read_rc < 0) {
 			rc = -1;
 			log_debug("%s: Failed to get response for %s (%d)",
-				  __func__, *resp, read_rc);
+				  __func__, cmd, read_rc);
 		}
 	}
 
 	fclose(f_cmd);
 	fclose(f_out);
 
-	if (rc && !*resp) {
+	if (rc && resp != NULL && !*resp) {
 		if (asprintf(resp, "Unable to execute '%s'", cmd) < 0)
 			log_error("%s: Unable to execute '%s': %s, %d", cmd,
 				  __func__, strerror(errno), errno);
