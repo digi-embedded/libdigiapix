@@ -299,12 +299,14 @@ static void *ldx_can_thr(void *arg)
 
 	while (pdata->run_thr) {
 		fd_set fds;
+		struct timeval tout;
 
 		pthread_mutex_lock(&pdata->mutex);
 
 		memcpy(&fds, &pdata->can_fds, sizeof(fds));
+		memcpy(&tout, &pdata->can_tout, sizeof(tout));
 
-		ret = select(pdata->maxfd + 1, &fds, NULL, NULL, NULL);
+		ret = select(pdata->maxfd + 1, &fds, NULL, NULL, &tout);
 		if (ret < 0 && errno != EINTR) {
 			log_error("%s|%s: select error (%d|%d)",
 					  cif->name, __func__, ret, errno);
@@ -603,6 +605,8 @@ can_if_t *ldx_can_request_by_name(const char * const if_name)
 	cif->name[IFNAMSIZ - 1] = '\0';
 	INIT_LIST_HEAD(&priv->err_cb_list_head);
 	INIT_LIST_HEAD(&priv->rx_cb_list_head);
+	priv->can_tout.tv_sec = LDX_CAN_DEF_TOUT_SEC;
+	priv->can_tout.tv_usec = LDX_CAN_DEF_TOUT_USEC;
 	priv->run_thr = true;
 	cif->_data = priv;
 
