@@ -641,16 +641,59 @@ int ldx_can_free(can_if_t *cif)
 		return EXIT_SUCCESS;
 
 	pdata = cif->_data;
-	pthread_mutex_lock(&pdata->mutex);
-	pthread_mutex_destroy(&pdata->mutex);
-	if (pdata->can_thr)
-		pthread_cancel(*pdata->can_thr);
+	if (pdata != NULL) {
+		can_err_cb_t *err_cb = NULL, *err_cb_tmp = NULL;
+		can_cb_t *rx_cb = NULL, *rx_cb_tmp = NULL;
+
+		/* Stop flag CAN thread */
+		pdata->run_thr = false;
+
+		/* Shutdown tx socket */
+		if (pdata->tx_skt)
+			shutdown(pdata->tx_skt, SHUT_RDWR);
+
+		/* Shutdown rx sockets */
+		list_for_each_entry(rx_cb, &pdata->rx_cb_list_head, list) {
+			shutdown(rx_cb->rx_skt, SHUT_RDWR);
+		}
+
+		if (pdata->can_thr) {
+			ret = pthread_mutex_lock(&pdata->mutex);
+			if (ret)
+				log_error("%s: error mutex lock %s", __func__, cif->name);
+		}
+
+		if (pdata->tx_skt)
+			close(pdata->tx_skt);
+
+		/* Unregister rx handlers */
+		list_for_each_entry_safe(rx_cb, rx_cb_tmp, &pdata->rx_cb_list_head, list) {
+			FD_CLR(rx_cb->rx_skt, &pdata->can_fds);
+			close(rx_cb->rx_skt);
+			list_del(&rx_cb->list);
+			free(rx_cb);
+		}
+
+		/* Unregister error handlers */
+		list_for_each_entry_safe(err_cb, err_cb_tmp, &pdata->err_cb_list_head, list) {
+			list_del(&err_cb->list);
+			free(err_cb);
+		}
+
+		/* Stop CAN thread */
+		if (pdata->can_thr) {
+			pthread_cancel(*pdata->can_thr);
+			pthread_join(*pdata->can_thr, NULL);
+			free(pdata->can_thr);
+			pthread_mutex_unlock(&pdata->mutex);
+			pthread_mutex_destroy(&pdata->mutex);
+		}
+	}
 
 	ret = ldx_can_stop(cif);
 	if (ret)
 		log_error("%s: can not stop iface %s", __func__, cif->name);
 
-	close(pdata->tx_skt);
 	free(pdata);
 	free(cif);
 
