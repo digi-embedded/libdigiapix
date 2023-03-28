@@ -36,7 +36,8 @@ extern "C" {
 
 #define LDX_CAN_INVALID_BITRATE		0
 #define LDX_CAN_INVALID_RESTART_MS	0
-#define LDX_CAN_UNCONFIGURED_MASK 0
+#define LDX_CAN_UNCONFIGURED_FLAGS	0
+#define LDX_CAN_UNCONFIGURED_MASK	0
 
 /**
  * Callback functions

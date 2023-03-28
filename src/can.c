@@ -131,6 +131,7 @@ void ldx_can_set_defconfig(can_if_cfg_t *cfg)
 	cfg->bitrate		= LDX_CAN_INVALID_BITRATE;
 	cfg->dbitrate		= LDX_CAN_INVALID_BITRATE;
 	cfg->restart_ms		= LDX_CAN_INVALID_RESTART_MS;
+	cfg->ctrl_mode.flags= LDX_CAN_UNCONFIGURED_FLAGS;
 	cfg->ctrl_mode.mask	= LDX_CAN_UNCONFIGURED_MASK;
 	cfg->error_mask		= CAN_ERR_TX_TIMEOUT |
 				  CAN_ERR_CRTL |
