@@ -37,6 +37,30 @@ extern "C" {
 bool _is_valid_ip(uint8_t ip[IPV4_GROUPS]);
 
 /*
+ * _get_nm_dev_name() - Returns the device name for network manager
+ *
+ * @iface_name:		Network interface name.
+ * @name:		Name of the device for network manager
+ *
+ * 'name' must be freed in case of success.
+ *
+ * Return: 0 on success, 1 otherwise.
+ */
+int _get_nm_dev_name(const char *iface_name, char **name);
+
+/*
+ * _get_nm_conn_name() - Returns the connection name for network manager
+ *
+ * @iface_name:		Network interface name.
+ * @name:		Name of the connection for network manager
+ *
+ * 'name' must be freed in case of success.
+ *
+ * Return: 0 on success, 1 otherwise.
+ */
+int _get_nm_conn_name(const char *iface_name, char **name);
+
+/*
  * _net_check_cfg() - Check whether the network configuration is valid
  *
  * @net_cfg:		Struct with data to configure.
