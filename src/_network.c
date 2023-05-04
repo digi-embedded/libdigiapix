@@ -31,7 +31,7 @@
 #define CMD_CONN_GATEWAY	" ipv4.gateway %d.%d.%d.%d"
 #define CMD_CONN_ADD_DNS	" +ipv4.dns %d.%d.%d.%d"
 #define CMD_CONN_DEL_DNS	" -ipv4.dns %d.%d.%d.%d"
-#define CMD_GET_NM_NAME 	"o=\"$(nmcli -m tab -t -f GENERAL.IP-IFACE,GENERAL.%s device show)\" && { echo \"${o}\" | awk NF=NF RS='' FS='\n' OFS=':' ORS='\n' | grep %s | cut -d':' -f2; }"
+#define CMD_GET_NM_NAME 	"o=\"$(nmcli -m tab -t -f GENERAL.IP-IFACE,GENERAL.%s device show)\" && { echo \"${o}\" | awk NF=NF RS='' FS='\n' OFS=':' ORS='\n' | grep ^%s | cut -d':' -f2; }"
 
 /*
  * is_valid_netmask() - Check if provided network mask is valid
