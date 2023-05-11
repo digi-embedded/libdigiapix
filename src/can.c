@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022, Digi International Inc.
+ * Copyright 2018-2023, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -98,10 +98,15 @@ const char *const __can_error_str[CAN_ERROR_MAX + 1] = {
 	[CAN_ERROR_DROPPED_FRAMES]		= "Dropped frames",
 };
 
+/* Default error handler, used to log information */
 static void ldx_can_default_error_handler(int error, void *data)
 {
-	/* Default error handler, used to log information */
-	log_error("%s: error: %d, %s", __func__, error, ldx_can_strerror(error));
+	const char *err_string = ldx_can_strerror(error);
+
+	if (err_string)
+		log_error("%s: error: %d, %s", __func__, error, err_string);
+	else
+		log_error("%s: error CAN ID frame: 0x%x", __func__, error);
 }
 
 const char * ldx_can_strerror(int error)
@@ -123,6 +128,7 @@ void ldx_can_set_defconfig(can_if_cfg_t *cfg)
 	cfg->bitrate		= LDX_CAN_INVALID_BITRATE;
 	cfg->dbitrate		= LDX_CAN_INVALID_BITRATE;
 	cfg->restart_ms		= LDX_CAN_INVALID_RESTART_MS;
+	cfg->ctrl_mode.flags= LDX_CAN_UNCONFIGURED_FLAGS;
 	cfg->ctrl_mode.mask	= LDX_CAN_UNCONFIGURED_MASK;
 	cfg->error_mask		= CAN_ERR_TX_TIMEOUT |
 				  CAN_ERR_CRTL |
@@ -217,12 +223,8 @@ static int ldx_can_process_tx_socket(const can_if_t *cif)
 		}
 
 		if (frame.can_id & CAN_ERR_FLAG) {
-			can_err_cb_t *err_cb;
-
-			list_for_each_entry(err_cb, &pdata->err_cb_list_head, list) {
-				if (err_cb->handler)
-					err_cb->handler(frame.can_id, NULL);
-			}
+			log_error("%s: CAN frame error", __func__);
+			ldx_can_call_err_cb(cif, frame.can_id, NULL);
 		}
 	}
 
@@ -279,12 +281,8 @@ static int ldx_can_process_rx_socket(can_if_t *cif, can_cb_t *rx_cb)
 		}
 
 		if (frame.can_id & CAN_ERR_FLAG) {
-			can_err_cb_t *err_cb;
-
-			list_for_each_entry(err_cb, &pdata->err_cb_list_head, list) {
-				if (err_cb->handler)
-					err_cb->handler(frame.can_id, NULL);
-			}
+			log_error("%s: CAN frame error", __func__);
+			ldx_can_call_err_cb(cif, frame.can_id, NULL);
 		}
 
 		if (rx_cb->handler)
@@ -302,12 +300,14 @@ static void *ldx_can_thr(void *arg)
 
 	while (pdata->run_thr) {
 		fd_set fds;
+		struct timeval tout;
 
 		pthread_mutex_lock(&pdata->mutex);
 
 		memcpy(&fds, &pdata->can_fds, sizeof(fds));
+		memcpy(&tout, &pdata->can_tout, sizeof(tout));
 
-		ret = select(pdata->maxfd + 1, &fds, NULL, NULL, NULL);
+		ret = select(pdata->maxfd + 1, &fds, NULL, NULL, &tout);
 		if (ret < 0 && errno != EINTR) {
 			log_error("%s|%s: select error (%d|%d)",
 					  cif->name, __func__, ret, errno);
@@ -606,6 +606,8 @@ can_if_t *ldx_can_request_by_name(const char * const if_name)
 	cif->name[IFNAMSIZ - 1] = '\0';
 	INIT_LIST_HEAD(&priv->err_cb_list_head);
 	INIT_LIST_HEAD(&priv->rx_cb_list_head);
+	priv->can_tout.tv_sec = LDX_CAN_DEF_TOUT_SEC;
+	priv->can_tout.tv_usec = LDX_CAN_DEF_TOUT_USEC;
 	priv->run_thr = true;
 	cif->_data = priv;
 
@@ -640,16 +642,59 @@ int ldx_can_free(can_if_t *cif)
 		return EXIT_SUCCESS;
 
 	pdata = cif->_data;
-	pthread_mutex_lock(&pdata->mutex);
-	pthread_mutex_destroy(&pdata->mutex);
-	if (pdata->can_thr)
-		pthread_cancel(*pdata->can_thr);
+	if (pdata != NULL) {
+		can_err_cb_t *err_cb = NULL, *err_cb_tmp = NULL;
+		can_cb_t *rx_cb = NULL, *rx_cb_tmp = NULL;
+
+		/* Stop flag CAN thread */
+		pdata->run_thr = false;
+
+		/* Shutdown tx socket */
+		if (pdata->tx_skt)
+			shutdown(pdata->tx_skt, SHUT_RDWR);
+
+		/* Shutdown rx sockets */
+		list_for_each_entry(rx_cb, &pdata->rx_cb_list_head, list) {
+			shutdown(rx_cb->rx_skt, SHUT_RDWR);
+		}
+
+		if (pdata->can_thr) {
+			ret = pthread_mutex_lock(&pdata->mutex);
+			if (ret)
+				log_error("%s: error mutex lock %s", __func__, cif->name);
+		}
+
+		if (pdata->tx_skt)
+			close(pdata->tx_skt);
+
+		/* Unregister rx handlers */
+		list_for_each_entry_safe(rx_cb, rx_cb_tmp, &pdata->rx_cb_list_head, list) {
+			FD_CLR(rx_cb->rx_skt, &pdata->can_fds);
+			close(rx_cb->rx_skt);
+			list_del(&rx_cb->list);
+			free(rx_cb);
+		}
+
+		/* Unregister error handlers */
+		list_for_each_entry_safe(err_cb, err_cb_tmp, &pdata->err_cb_list_head, list) {
+			list_del(&err_cb->list);
+			free(err_cb);
+		}
+
+		/* Stop CAN thread */
+		if (pdata->can_thr) {
+			pthread_cancel(*pdata->can_thr);
+			pthread_join(*pdata->can_thr, NULL);
+			free(pdata->can_thr);
+			pthread_mutex_unlock(&pdata->mutex);
+			pthread_mutex_destroy(&pdata->mutex);
+		}
+	}
 
 	ret = ldx_can_stop(cif);
 	if (ret)
 		log_error("%s: can not stop iface %s", __func__, cif->name);
 
-	close(pdata->tx_skt);
 	free(pdata);
 	free(cif);
 

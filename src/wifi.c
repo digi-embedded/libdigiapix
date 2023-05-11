@@ -359,7 +359,7 @@ int ldx_wifi_list_available_ifaces(net_names_list_t *iface_list)
 wifi_state_error_t ldx_wifi_get_iface_state(const char *iface_name, wifi_state_t *wifi_state)
 {
 	int sock = -1;
-	wifi_state_error_t ret, err;
+	wifi_state_error_t ret;
 
 	memset(wifi_state, 0, sizeof(*wifi_state));
 	wifi_state->freq = -1;
@@ -390,15 +390,12 @@ wifi_state_error_t ldx_wifi_get_iface_state(const char *iface_name, wifi_state_t
 
 	ret = get_ssid(iface_name, sock, wifi_state->ssid);
 
-	err = get_freq(iface_name, sock, &wifi_state->freq);
-	if (err == WIFI_STATE_ERROR_NONE)
-		err = get_channel(iface_name, sock, wifi_state->freq, &wifi_state->channel);
-
-	if (ret == WIFI_STATE_ERROR_NONE)
-		ret = err;
+	/* Continue getting state if frequency or channel fails */
+	if (get_freq(iface_name, sock, &wifi_state->freq) == WIFI_STATE_ERROR_NONE)
+		get_channel(iface_name, sock, wifi_state->freq, &wifi_state->channel);
 
 	if (wifi_state->net_state.status == NET_STATUS_CONNECTED) {
-		err = get_sec_mode(iface_name, &wifi_state->sec_mode);
+		wifi_state_error_t err = get_sec_mode(iface_name, &wifi_state->sec_mode);
 		if (ret == WIFI_STATE_ERROR_NONE)
 			ret = err;
 	}

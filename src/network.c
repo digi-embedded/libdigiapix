@@ -266,19 +266,23 @@ static net_state_error_t get_dns(const char *iface_name, uint8_t (*dns1)[IPV4_GR
 	int len, i = 0;
 	net_state_error_t ret = NET_STATE_ERROR_DNS;
 	char *cmd = NULL, *resp = NULL, *token = NULL;
+	char *nm_name = NULL, *iname = (char *)iface_name;
 	char delim[] = " | ", dns_str[20];
 	struct in_addr iaddr;
 
-	len = snprintf(NULL, 0, CMD_GET_DNS, iface_name);
+	if (_get_nm_dev_name(iface_name, &nm_name) == 0)
+		iname = nm_name;
+
+	len = snprintf(NULL, 0, CMD_GET_DNS, iname);
 	cmd = calloc(len + 1, sizeof(*cmd));
 	if (cmd == NULL) {
 		ret = NET_STATE_ERROR_NO_MEM;
 		log_debug("%s: Unable to get '%s' DNS: %s", __func__,
 			  iface_name, ldx_net_code_to_str(ret));
-		return ret;
+		goto done;
 	}
 
-	sprintf(cmd, CMD_GET_DNS, iface_name);
+	sprintf(cmd, CMD_GET_DNS, iname);
 	len = ldx_process_execute_cmd(cmd, &resp, 2);
 	if (len != 0 || resp == NULL) {
 		if (len == 127) /* Command not found */
@@ -316,6 +320,7 @@ static net_state_error_t get_dns(const char *iface_name, uint8_t (*dns1)[IPV4_GR
 	ret = NET_STATE_ERROR_NONE;
 
 done:
+	free(nm_name);
 	free(cmd);
 	free(resp);
 
@@ -382,9 +387,13 @@ static net_status_t get_device_status(const char *iface_name)
 {
 	net_status_t status = NET_STATUS_UNKNOWN;
 	char *cmd = NULL, *resp = NULL;
+	char *nm_name = NULL, *iname = (char *)iface_name;
 	int rc;
 
-	rc = snprintf(NULL, 0, CMD_IFACE_STATE, iface_name);
+	if (_get_nm_dev_name(iface_name, &nm_name) == 0)
+		iname = nm_name;
+
+	rc = snprintf(NULL, 0, CMD_IFACE_STATE, iname);
 	cmd = calloc(rc + 1, sizeof(*cmd));
 	if (cmd == NULL) {
 		log_debug("%s: Unable to determine if '%s' is configurable: Out of memory",
@@ -392,7 +401,7 @@ static net_status_t get_device_status(const char *iface_name)
 		return NET_STATUS_UNKNOWN;
 	}
 
-	sprintf(cmd, CMD_IFACE_STATE, iface_name);
+	sprintf(cmd, CMD_IFACE_STATE, iname);
 	rc = ldx_process_execute_cmd(cmd, &resp, 2);
 	if (rc != 0) {
 		if (rc == 127) /* Command not found */
@@ -420,6 +429,7 @@ static net_status_t get_device_status(const char *iface_name)
 		status = NET_STATUS_UNAVAILABLE;
 
 done:
+	free(nm_name);
 	free(cmd);
 	free(resp);
 

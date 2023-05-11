@@ -31,6 +31,7 @@
 #define CMD_CONN_GATEWAY	" ipv4.gateway %d.%d.%d.%d"
 #define CMD_CONN_ADD_DNS	" +ipv4.dns %d.%d.%d.%d"
 #define CMD_CONN_DEL_DNS	" -ipv4.dns %d.%d.%d.%d"
+#define CMD_GET_NM_NAME 	"o=\"$(nmcli -m tab -t -f GENERAL.IP-IFACE,GENERAL.%s device show)\" && { echo \"${o}\" | awk NF=NF RS='' FS='\n' OFS=':' ORS='\n' | grep ^%s | cut -d':' -f2; }"
 
 /*
  * is_valid_netmask() - Check if provided network mask is valid
@@ -106,12 +107,84 @@ static bool check_conn_exists(const char *iface_name)
 	return exists;
 }
 
+/*
+ * _get_nm_name() - Returns the device/connection name for network manager
+ *
+ * @iface_name:		Network interface name.
+ * @type:		"DEVICE" or "CONNECTION".
+ * @name:		Name of the device/connection for network manager
+ *
+ * 'name' must be freed in case of success.
+ *
+ * Return: 0 on success, 1 otherwise.
+ */
+static int _get_nm_name(const char *iface_name, const char *type, char **name)
+{
+	int len, ret = 1;
+	char *cmd = NULL, *resp = NULL;
+
+	*name = NULL;
+
+	len = snprintf(NULL, 0, CMD_GET_NM_NAME, type, iface_name);
+	cmd = calloc(len + 1, sizeof(*cmd));
+	if (cmd == NULL) {
+		log_debug("%s: Unable to get '%s' nmcli %s name: Out of memory",
+			  __func__, iface_name, type);
+		return ret;
+	}
+
+	sprintf(cmd, CMD_GET_NM_NAME, type, iface_name);
+	len = ldx_process_execute_cmd(cmd, &resp, 2);
+	if (len != 0 || resp == NULL) {
+		if (len == 127) /* Command not found */
+			log_debug("%s: 'nmcli' not found", __func__);
+		else if (resp != NULL)
+			log_debug("%s: Unable to get '%s' nmcli %s name: %s",
+				  __func__, iface_name, type, resp);
+		else
+			log_debug("%s: Unable to get '%s' nmcli %s name",
+				  __func__, iface_name, type);
+		goto done;
+	}
+
+	resp[strlen(resp) - 1] = '\0';  /* Remove the last line feed */
+
+	if (strlen(resp) == 0)
+		goto done;
+
+	*name = calloc(strlen(resp) + 1, sizeof(**name));
+	if (*name == NULL) {
+		log_debug("%s: Unable to get '%s' nmcli %s name: Out of memory",
+			  __func__, iface_name, type);
+		goto done;
+	}
+
+	strcpy(*name, resp);
+	ret = 0;
+
+done:
+	free(cmd);
+	free(resp);
+
+	return ret;
+}
+
 bool _is_valid_ip(uint8_t ip[IPV4_GROUPS])
 {
 	if (ip == NULL)
 		return false;
 
 	return ip[3] + (ip[2] << 8) + (ip[1] << 16) + (ip[0] << 24) != 0;
+}
+
+int _get_nm_dev_name(const char *iface_name, char **name)
+{
+	return _get_nm_name(iface_name, "DEVICE", name);
+}
+
+int _get_nm_conn_name(const char *iface_name, char **name)
+{
+	return _get_nm_name(iface_name, "CONNECTION", name);
 }
 
 net_state_error_t _net_check_cfg(net_config_t net_cfg, net_state_t *net_state)
@@ -154,6 +227,7 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 	net_state_error_t ret = NET_STATE_ERROR_CONFIG;
 	bool is_new = false;
 	char *iface_name = net_cfg.name;
+	char *nm_name = NULL, *cname = (char *)iface_name;
 	uint8_t *dns[] = { net_cfg.dns1, net_cfg.dns2 };
 	uint8_t *del_dns[] = { NULL, NULL };
 	char *tmp = NULL, *enable_cmd = NULL;
@@ -181,10 +255,13 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 	if (net_cfg.n_dns > 1)
 		del_dns[1] = net_state.dns2;
 
-	is_new = !check_conn_exists(iface_name);
+	if (_get_nm_conn_name(iface_name, &nm_name) == 0)
+		cname = nm_name;
+
+	is_new = !check_conn_exists(cname);
 	if (is_new) {
 		len = snprintf(NULL, 0, CMD_CONN_ADD,
-			is_wifi ? "802-11-wireless" : "802-3-ethernet", iface_name, iface_name);
+			is_wifi ? "802-11-wireless" : "802-3-ethernet", cname, cname);
 		*cmd = calloc(len + 1, sizeof(**cmd));
 		if (*cmd == NULL) {
 			ret = NET_STATE_ERROR_NO_MEM;
@@ -193,13 +270,12 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 			return ret;
 		}
 		sprintf(*cmd, CMD_CONN_ADD,
-			is_wifi ? "802-11-wireless" : "802-3-ethernet", iface_name, iface_name);
-		//log_debug("[TL] 0 cmd: %s\n", *cmd);
+			is_wifi ? "802-11-wireless" : "802-3-ethernet", cname, cname);
 	} else if ((extra_params != NULL && strlen(extra_params) > 0)
 		|| net_cfg.is_dhcp != NET_ENABLED_ERROR
 		|| net_cfg.set_ip || net_cfg.set_netmask
 		|| net_cfg.set_gateway || valid_dns) {
-		len = snprintf(NULL, 0, CMD_CONN_MOD, iface_name);
+		len = snprintf(NULL, 0, CMD_CONN_MOD, cname);
 		*cmd = calloc(len + 1, sizeof(**cmd));
 		if (*cmd == NULL) {
 			ret = NET_STATE_ERROR_NO_MEM;
@@ -207,7 +283,7 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 				  __func__, iface_name, ldx_net_code_to_str(ret));
 			return ret;
 		}
-		sprintf(*cmd, CMD_CONN_MOD, iface_name);
+		sprintf(*cmd, CMD_CONN_MOD, cname);
 	}
 
 	/* Connection method: static/DHCP */
@@ -349,9 +425,14 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 		enable_cmd = "disconnect";
 
 	if (enable_cmd != NULL) {
+		char *dname = (char *)iface_name;
 		bool empty_cmd = (*cmd == NULL);
 
-		len = snprintf(NULL, 0, CMD_ENABLE, enable_cmd, iface_name);
+		free(nm_name);
+		if (_get_nm_dev_name(iface_name, &nm_name) == 0)
+			dname = nm_name;
+
+		len = snprintf(NULL, 0, CMD_ENABLE, enable_cmd, dname);
 		if (!empty_cmd)
 			len = len + strlen(*cmd) + 4; /* ' && ' */
 
@@ -365,9 +446,9 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 
 		*cmd = tmp;
 		if (!empty_cmd)
-			sprintf(*cmd + strlen(*cmd), " && " CMD_ENABLE, enable_cmd, iface_name);
+			sprintf(*cmd + strlen(*cmd), " && " CMD_ENABLE, enable_cmd, dname);
 		else
-			sprintf(*cmd, CMD_ENABLE, enable_cmd, iface_name);
+			sprintf(*cmd, CMD_ENABLE, enable_cmd, dname);
 	}
 
 	ret = NET_STATE_ERROR_NONE;
@@ -375,6 +456,7 @@ net_state_error_t _net_get_cfg_cmd(net_config_t net_cfg, net_state_t net_state,
 	return ret;
 
 error:
+	free(nm_name);
 	free(*cmd);
 	*cmd = NULL;
 
