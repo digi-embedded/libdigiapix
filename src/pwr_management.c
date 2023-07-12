@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022, Digi International Inc.
+ * Copyright 2019-2023, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,11 @@
 
 // Paths
 #define CORES_PATH 				"/sys/devices/system/cpu"
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,5,0))
 #define CC6_GPU_PATH			"/sys/devices/soc0/soc/130000.gpu/"
+#else
+#define CC6_GPU_PATH			"/sys/devices/platform/soc/130000.gpu/"
+#endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0))
 #define CC8X_GPU_PATH			"/sys/devices/platform/80000000.imx8_gpu_ss/"
 #else
