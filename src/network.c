@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Digi International Inc.
+ * Copyright 2022, 2023, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -537,7 +537,9 @@ net_state_error_t ldx_net_get_iface_state(const char *iface_name, net_state_t *n
 	}
 
 	net_state->status = get_device_status(iface_name);
-	if (net_state->status == NET_STATUS_CONNECTED || flags & IFF_LOOPBACK) {
+	if (net_state->status == NET_STATUS_CONNECTED
+		|| net_state->status == NET_STATUS_UNMANAGED
+		|| flags & IFF_LOOPBACK) {
 		/* Get IP */
 		tmp_ret = _get_ip(iface_name, &net_state->ipv4, sock);
 		if (ret == NET_STATE_ERROR_NONE)
