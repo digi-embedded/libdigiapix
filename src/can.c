@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023, Digi International Inc.
+ * Copyright 2018-2024, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -296,11 +296,11 @@ static void *ldx_can_thr(void *arg)
 {
 	can_if_t *cif = (can_if_t *)arg;
 	can_priv_t *pdata = cif->_data;
-	int ret;
 
 	while (pdata->run_thr) {
 		fd_set fds;
 		struct timeval tout;
+		int ret;
 
 		pthread_mutex_lock(&pdata->mutex);
 
@@ -338,10 +338,17 @@ static void *ldx_can_thr(void *arg)
 			}
 		}
 
+		/* Allow to manipulate callbacks if it is required */
+		while (pdata->should_wait)
+			if (pthread_cond_wait(&pdata->cond, &pdata->mutex))
+				log_error("%s|%s: condition wait error (%d)",
+					  cif->name, __func__, ret);
+
 		pthread_mutex_unlock(&pdata->mutex);
 
 		sched_yield();
 	}
+
 	return NULL;
 }
 
@@ -551,20 +558,10 @@ int ldx_can_init(can_if_t *cif, can_if_cfg_t *cfg)
 		pthread_attr_init(&pdata->can_thr_attr);
 		pthread_attr_setschedpolicy(&pdata->can_thr_attr, SCHED_FIFO);
 
-		ret = pthread_mutex_init(&pdata->mutex, NULL);
-		if (ret) {
-			log_error("%s: Unable init thread mutex %s",
-				  __func__, cif->name);
-			ret = -CAN_ERROR_THREAD_MUTEX_INIT;
-			goto err_thr_alloc;
-		}
-
 		ret = pthread_create(pdata->can_thr, NULL, ldx_can_thr, cif);
 		if (ret) {
 			log_error("%s: Unable to create thread in %s",
 				  __func__, cif->name);
-			pthread_mutex_unlock(&pdata->mutex);
-			pthread_mutex_destroy(&pdata->mutex);
 			ret = -CAN_ERROR_THREAD_CREATE;
 			goto err_thr_alloc;
 		}
@@ -609,6 +606,33 @@ can_if_t *ldx_can_request_by_name(const char * const if_name)
 	priv->can_tout.tv_sec = LDX_CAN_DEF_TOUT_SEC;
 	priv->can_tout.tv_usec = LDX_CAN_DEF_TOUT_USEC;
 	priv->run_thr = true;
+	priv->should_wait = 0;
+
+	/* Change Mutex type and robustness */
+	pthread_mutexattr_init(&priv->mutex_attr);
+	pthread_mutexattr_setrobust(&priv->mutex_attr, PTHREAD_MUTEX_ROBUST);
+	pthread_mutexattr_settype(&priv->mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+
+	if (pthread_mutex_init(&priv->mutex, &priv->mutex_attr)) {
+		log_error("%s: Unable init thread mutex %s",
+			  __func__, if_name);
+		free(cif);
+		free(priv);
+
+		return NULL;
+	}
+
+	if (pthread_cond_init(&priv->cond, NULL)) {
+		log_error("%s: Unable to create thread condition in %s",
+			  __func__, if_name);
+		pthread_mutex_destroy(&priv->mutex);
+		pthread_mutexattr_destroy(&priv->mutex_attr);
+		free(cif);
+		free(priv);
+
+		return NULL;
+	}
+
 	cif->_data = priv;
 
 	return cif;
@@ -658,10 +682,20 @@ int ldx_can_free(can_if_t *cif)
 			shutdown(rx_cb->rx_skt, SHUT_RDWR);
 		}
 
+		/* Stop CAN thread */
 		if (pdata->can_thr) {
-			ret = pthread_mutex_lock(&pdata->mutex);
-			if (ret)
-				log_error("%s: error mutex lock %s", __func__, cif->name);
+			pthread_cancel(*pdata->can_thr);
+			pthread_join(*pdata->can_thr, NULL);
+			free(pdata->can_thr);
+			pdata->can_thr = NULL;
+		}
+
+		/* Get mutex */
+		ret = pthread_mutex_lock(&pdata->mutex);
+		if (ret) {
+			/* only print error if different from owner dead */
+			if (ret != EOWNERDEAD)
+				log_error("%s: error mutex lock %s ret %d", __func__, cif->name, ret);
 		}
 
 		if (pdata->tx_skt)
@@ -681,14 +715,12 @@ int ldx_can_free(can_if_t *cif)
 			free(err_cb);
 		}
 
-		/* Stop CAN thread */
-		if (pdata->can_thr) {
-			pthread_cancel(*pdata->can_thr);
-			pthread_join(*pdata->can_thr, NULL);
-			free(pdata->can_thr);
-			pthread_mutex_unlock(&pdata->mutex);
-			pthread_mutex_destroy(&pdata->mutex);
-		}
+		/* Close all mutex and mutex condition */
+		pthread_mutex_unlock(&pdata->mutex);
+		pthread_mutex_destroy(&pdata->mutex);
+		pthread_cond_destroy(&pdata->cond);
+		pthread_mutexattr_destroy(&pdata->mutex_attr);
+		pdata->should_wait = 0;
 	}
 
 	ret = ldx_can_stop(cif);
@@ -763,10 +795,14 @@ int ldx_can_register_error_handler(const can_if_t *cif, const ldx_can_error_cb_t
 
 	pdata = cif->_data;
 
-	ret = pthread_mutex_lock(&pdata->mutex);
-	if (ret) {
+	pdata->should_wait = 1;
+	if (pthread_mutex_lock(&pdata->mutex)) {
 		log_error("%s: error mutex lock %s",
 			  __func__, cif->name);
+		/* Signal work finished */
+		pdata->should_wait = 0;
+		pthread_cond_signal(&pdata->cond);
+
 		return -CAN_ERROR_THREAD_MUTEX_LOCK;
 	}
 
@@ -788,8 +824,12 @@ int ldx_can_register_error_handler(const can_if_t *cif, const ldx_can_error_cb_t
 
 	errcb->handler = cb;
 	list_add(&(errcb->list), &(pdata->err_cb_list_head));
+	ret = CAN_ERROR_NONE;
 
 ecb_err_unlock:
+	/* Signal work finished */
+	pdata->should_wait = 0;
+	pthread_cond_signal(&pdata->cond);
 	pthread_mutex_unlock(&pdata->mutex);
 
 	return ret;
@@ -806,12 +846,15 @@ int ldx_can_unregister_error_handler(const can_if_t *cif, const ldx_can_error_cb
 
 	pdata = cif->_data;
 
-	ret = pthread_mutex_lock(&pdata->mutex);
-	if (ret) {
+	pdata->should_wait = 1;
+	if (pthread_mutex_lock(&pdata->mutex)) {
 		log_error("%s: error mutex lock %s",
 			  __func__, cif->name);
-		ret = -CAN_ERROR_THREAD_MUTEX_LOCK;
-		goto unreg_errh_ret;
+		/* Signal work finished */
+		pdata->should_wait = 0;
+		pthread_cond_signal(&pdata->cond);
+
+		return -CAN_ERROR_THREAD_MUTEX_LOCK;
 	}
 
 	/* Find the callback and remove it from the list */
@@ -824,11 +867,14 @@ int ldx_can_unregister_error_handler(const can_if_t *cif, const ldx_can_error_cb
 
 	list_del(&errcb->list);
 	free(errcb);
+	ret = CAN_ERROR_NONE;
 
 unreg_errh_unlock:
+	/* Signal work finished */
+	pdata->should_wait = 0;
+	pthread_cond_signal(&pdata->cond);
 	pthread_mutex_unlock(&pdata->mutex);
 
-unreg_errh_ret:
 	return ret;
 
 }
@@ -860,10 +906,14 @@ int ldx_can_register_rx_handler(can_if_t *cif, const ldx_can_rx_cb_t cb,
 
 	pdata = cif->_data;
 
-	ret = pthread_mutex_lock(&pdata->mutex);
-	if (ret) {
+	pdata->should_wait = 1;
+	if (pthread_mutex_lock(&pdata->mutex)) {
 		log_error("%s: error mutex lock %s",
 			  __func__, cif->name);
+		/* Signal work finished */
+		pdata->should_wait = 0;
+		pthread_cond_signal(&pdata->cond);
+
 		return -CAN_ERROR_THREAD_MUTEX_LOCK;
 	}
 
@@ -1012,9 +1062,9 @@ int ldx_can_register_rx_handler(can_if_t *cif, const ldx_can_rx_cb_t cb,
 
 	rxcb->handler = cb;
 	list_add(&(rxcb->list), &(pdata->rx_cb_list_head));
-	pthread_mutex_unlock(&pdata->mutex);
 
-	return CAN_ERROR_NONE;
+	ret = CAN_ERROR_NONE;
+	goto rx_err_unlock;
 
 rx_err_skt_close:
 	close(rxcb->rx_skt);
@@ -1023,6 +1073,9 @@ rx_err_free:
 	free(rxcb);
 
 rx_err_unlock:
+	/* Signal work finished */
+	pdata->should_wait = 0;
+	pthread_cond_signal(&pdata->cond);
 	pthread_mutex_unlock(&pdata->mutex);
 
 	return ret;
@@ -1032,18 +1085,21 @@ int ldx_can_unregister_rx_handler(const can_if_t *cif, const ldx_can_rx_cb_t cb)
 {
 	can_priv_t *pdata = NULL;
 	can_cb_t *rxcb;
-	int ret;
+	int ret = 0;
 
 	if (!cif)
 		return -CAN_ERROR_NULL_INTERFACE;
 
 	pdata = cif->_data;
-	ret = pthread_mutex_lock(&pdata->mutex);
-	if (ret) {
+	pdata->should_wait = 1;
+	if (pthread_mutex_lock(&pdata->mutex)) {
 		log_error("%s: error mutex lock %s",
 			  __func__, cif->name);
-		ret = -CAN_ERROR_THREAD_MUTEX_LOCK;
-		goto unreg_rxh_ret;
+		/* Signal work finished */
+		pdata->should_wait = 0;
+		pthread_cond_signal(&pdata->cond);
+
+		return -CAN_ERROR_THREAD_MUTEX_LOCK;
 	}
 
 	/* Find the callback and remove it from the list */
@@ -1061,8 +1117,10 @@ int ldx_can_unregister_rx_handler(const can_if_t *cif, const ldx_can_rx_cb_t cb)
 	free(rxcb);
 
 unreg_rxh_unlock:
+	/* Signal work finished */
+	pdata->should_wait = 0;
+	pthread_cond_signal(&pdata->cond);
 	pthread_mutex_unlock(&pdata->mutex);
 
-unreg_rxh_ret:
 	return ret;
 }
