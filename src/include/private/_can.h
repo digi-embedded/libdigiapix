@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022, Digi International Inc.
+ * Copyright 2018-2024, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -74,7 +74,10 @@ typedef struct can_err_cb {
  * @can_thr:		Working thread used by the library.
  * @can_thr_attr:	Working thread attribute structure.
  * @mux:			Mutex lock thread.
+ * @muxtex_attr:	Mutex attributes.
+ * @cond:			Mutex Condition.
  * @run_thr:		Variable to check if the thread is running.
+ * @should_wait:	Variable to signal thread can start.
  * @rx_cb_list_head:	Linked list head for rx callbacks.
  * @err_cb_list_head:	Linked list head for error callbacks.
  */
@@ -92,7 +95,10 @@ typedef struct {
 	pthread_t		*can_thr;
 	pthread_attr_t		can_thr_attr;
 	pthread_mutex_t		mutex;
+	pthread_mutexattr_t	mutex_attr;
+	pthread_cond_t		cond;
 	bool			run_thr;
+	bool			should_wait;
 
 	struct list_head	rx_cb_list_head;
 	struct list_head	err_cb_list_head;
