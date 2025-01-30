@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Digi International Inc.
+ * Copyright 2017-2024, Digi International Inc.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -142,7 +142,7 @@ adc_t *ldx_adc_request_by_alias(char const * const adc_alias)
 	return new_adc;
 }
 
-int ldx_set_scale(adc_t *adc, float scale)
+int ldx_adc_set_scale(adc_t *adc, float scale)
 {
 	adc_internal_t *_adc = NULL;
 
