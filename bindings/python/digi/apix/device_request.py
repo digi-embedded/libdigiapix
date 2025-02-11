@@ -40,12 +40,10 @@ import threading
 from typing import Callable, Optional
 
 import digidevice._cc as cc
-from syslog import syslog
 
 
 def _unregister_all():
     targets = list(_registered_callbacks.keys())
-    syslog("process %d finished, unregistering callbacks: %s" % (os.getpid(), str(targets)))
     for target in targets:
         try:
             unregister(target)
@@ -103,7 +101,6 @@ class _StoppableThread(threading.Thread):
                     try:
                         (request_cb, status_cb, xml_encoding) = _registered_callbacks[target]
                     except KeyError:
-                        syslog("Got callback for unregistered target: " + target)
                         continue
 
                     if cb_type == 'request':
@@ -111,14 +108,14 @@ class _StoppableThread(threading.Thread):
                         try:
                             request = request.decode(xml_encoding)
                         except UnicodeError:
-                            syslog("request for target '%s' cannot be %s-decoded, using raw bytes for the callback" % (target, xml_encoding))
+                            # If the encoding is None, we pass the raw bytes to the callback
+                            pass
 
                     elif cb_type == 'status':
                         err_code = cc._read_int(stream)
                         err_hint = cc._read_string(stream)
                     else:
-                        # Log and ignore other callbacks
-                        syslog("Got strange callback type from CC: {}".format(cb_type))
+                        # Ignore other callbacks
                         continue
 
                     if cb_type == 'request':
@@ -127,7 +124,6 @@ class _StoppableThread(threading.Thread):
                             try:
                                 response = str(response)
                             except Exception:
-                                syslog("response for target '%s' is not convertible to str, using empty string" % target)
                                 response = ""
 
                         cc._write_blob( stream, response.encode(xml_encoding, errors="replace"))  # send the callback response back to the DRM connector
@@ -136,7 +132,6 @@ class _StoppableThread(threading.Thread):
                     stream.flush()
                 except:
                     # No one can take care of these errors (timeout, incomplete message, ...), just ignore the request.
-                    syslog("Unexpected error: %s" % sys.exc_info()[0])
                     continue
 
             conn.close()

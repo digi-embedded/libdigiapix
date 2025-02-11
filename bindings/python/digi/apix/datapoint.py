@@ -30,7 +30,6 @@ import collections.abc
 import json
 import re
 from enum import Enum
-from syslog import syslog
 from typing import Tuple, List
 
 import digidevice._cc as cc
@@ -129,8 +128,6 @@ class DataPoint:
 
         if data_type is not None:
             if not isinstance(data_type, DataType):
-                if cc._trace:
-                    syslog('Bad data_type {!r}'.format(data_type))
                 raise TypeError("data_type parameter is not a DataType enum")
             if data_type == DataType.BINARY:
                 raise TypeError((

@@ -15,7 +15,6 @@
 import ctypes
 import socket
 import io
-from syslog import syslog
 from enum import Enum
 from typing import List
 
@@ -26,7 +25,6 @@ CC_PORT = 977
 # TODO:2 seconds seems bad, this is probably left over socket to cloud connector timeout, not actual round trip time.
 _CC_STATUS_MSG_TIMEOUT = 2.0
 
-_trace = False
 _traceReqResp = False
 
 _intsize = ctypes.sizeof(ctypes.c_uint32)
@@ -76,14 +74,10 @@ def _parse_response(stream) -> List:
                 break
             elif rtype == _ResponseType.ErrorText:
                 msg = _read_blob(stream).decode('ascii')
-                if _trace:
-                    syslog("Parsing error {!r}, msg={}".format(rtype, msg))
                 ret.append(msg)
             elif rtype == _ResponseType.ErrorCode:
                 ret.append(_read_int(stream))
             else:
-                if _trace:
-                    syslog('Bad response type={!r}, response={!r}'.format(rtype, resp))
                 raise ValueError("Received an unknown response from the DRM cloud connector {}".format(rtype))
         except:
             raise ValueError("Bad response from cloud connector {}".format(response if _traceReqResp else ""))
@@ -106,18 +100,12 @@ def _cc_interaction(msg: bytes, timeout: float = _CC_STATUS_MSG_TIMEOUT, timeout
             fd.settimeout(timeout)
             response = _parse_response(fd.makefile('rb'))
         except ConnectionResetError as e:
-            if _trace:
-                syslog('DRM Connector reset the connection')
             # TODO: Build some smarts into this line flow about the data that is supposed to be
             #       available (i.e. a total length of each message) we would not have to deal with it like this.
             raise RuntimeError("The DRM connector reset the connection prematurely") from None
         except ConnectionRefusedError as e:
-            if _trace:
-                syslog('Connection Refused')
             raise RuntimeError("The DRM connector is not running") from None
         except socket.timeout:
-            if _trace:
-                syslog('Connection to DRM Connector timeout out')
             if timeout_msg is None:
                 timeout_msg = "The Cloud Connector request timed out"
             raise TimeoutError(timeout_msg) from None
