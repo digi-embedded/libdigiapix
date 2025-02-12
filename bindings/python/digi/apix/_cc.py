@@ -152,11 +152,11 @@ def _writeall( stream, data ):
         if nw is not None:
             written += nw
 
-def _write_blob( stream, data: bytes):
+def _write_blob( stream, data: bytes, status: int = 0):
     l = len(data)
     if l > 65535:
         raise ValueError("The data size ({}) is too large".format(l))
-    data = b"b:" + _encode_int(l) + data + b'\n'
+    data = b"" + _encode_int(status) + b"b:" + _encode_int(l) + data + b'\n'
     _writeall( stream, data )
 
 def _read_int(stream) -> int:

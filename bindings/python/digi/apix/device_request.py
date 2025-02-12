@@ -119,14 +119,14 @@ class _StoppableThread(threading.Thread):
                         continue
 
                     if cb_type == 'request':
-                        response = request_cb(target, request)                  # call back to the registered target
+                        (response, status) = request_cb(target, request)                  # call back to the registered target
                         if not isinstance(response, str):
                             try:
                                 response = str(response)
                             except Exception:
                                 response = ""
 
-                        cc._write_blob( stream, response.encode(xml_encoding, errors="replace"))  # send the callback response back to the DRM connector
+                        cc._write_blob( stream, response.encode(xml_encoding, errors="replace"), status)  # send the callback response back to the DRM connector
                     elif cb_type == 'status' and status_cb is not None:
                         status_cb(err_code, err_hint)                           # report the status to the callback
                     stream.flush()
@@ -207,8 +207,9 @@ def register(target: str, response_callback: Callable[[str, str], Optional[str]]
 
     :param target: Value of the "target_name" attribute on the SCI device_request
     :param response_callback: callback function that takes two arguments: the target (str) and the
-    request (str). The function may return a str to be sent back to Digi Remote Manager as reply to
-    the SCI request.
+    request (str). The function must return a dictionary of two values: First value is a str to be sent back to Digi
+    Remote Manager as reply to the SCI request. Second value is a status code, being 0 success and any other value
+    an error.
     :param status_callback: Optional: callback function that provides status about the SCI reply. It takes
     two arguments: an error code (int) and a error hint (str). The error code is 0 for success, and other positive
     values for different errors. The error hint contains an indication of the problem or "Success" for error code 0.
