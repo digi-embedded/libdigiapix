@@ -32,7 +32,7 @@ import re
 from enum import Enum
 from typing import Tuple, List
 
-import digidevice._cc as cc
+import digi.apix._cc as cc
 
 
 # The data type is serialized into the CSV message as a string, the NAME must

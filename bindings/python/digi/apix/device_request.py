@@ -39,7 +39,7 @@ import sys
 import threading
 from typing import Callable, Optional
 
-import digidevice._cc as cc
+import digi.apix._cc as cc
 
 
 def _unregister_all():
