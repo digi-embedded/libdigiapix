@@ -892,10 +892,16 @@ void *libgpio_poll_thread(void *data)
 	while (1) {
 		cnt = poll(&pfds, 1, ts);
 		if (cnt < 0) {
+			if (errno == EINTR) {
+				/* Interrupted by signal, just retry */
+				continue;
+			}
 			/* Error */
-			log_error("%s: error polling GPIO", __func__);
+			log_error("%s: error polling GPIO: %s", __func__, strerror(errno));
 			continue;
-		} else if (cnt == 0) {
+		}
+
+		if (cnt == 0) {
 			/* Timeout */
 			continue;
 		}
@@ -903,7 +909,10 @@ void *libgpio_poll_thread(void *data)
 		if (pfds.revents) {
 			struct gpiod_line_event event;
 
-			gpiod_line_event_read_fd(ctx->fd, &event);
+			if (gpiod_line_event_read_fd(ctx->fd, &event) < 0) {
+				log_error("%s: failed to read GPIO event", __func__);
+				continue;
+			}
 
 			ctx->callback_fn(ctx->arg);
 		}
