@@ -230,6 +230,10 @@ static int is_gpu_supported(digi_platform_t platform)
     case CC6UL_PLATFORM:
     case CCMP15_PLATFORM:
     case CCMP13_PLATFORM:
+    case CCMP25_PLATFORM:
+    case CC91_PLATFORM:
+    case CC93_PLATFORM:
+    case CC95_PLATFORM:
         log_error("%s: This platform doesn't support GPU management", __func__);
         return 0;
     default:
