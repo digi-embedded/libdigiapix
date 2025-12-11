@@ -35,11 +35,15 @@
 #endif
 #define CCMP13_PLATFORM_STRING 		"ccmp13"
 #define CCMP15_PLATFORM_STRING 		"ccmp15"
+#define CCMP25_PLATFORM_STRING 		"ccmp25"
 #define CC8MN_PLATFORM_STRING		"imx8mn"
 #define CC8MM_PLATFORM_STRING		"imx8mm"
 #define CC6UL_PLATFORM_STRING		"imx6ul"
 #define CC6_PLATFORM_STRING			"imx6q"
 #define CC6DL_PLATFORM_STRING 		"imx6dl"
+#define CC91_PLATFORM_STRING		"imx91"
+#define CC93_PLATFORM_STRING		"imx93"
+#define CC95_PLATFORM_STRING		"imx95"
 
 static void __attribute__ ((constructor(101))) digiapix_init(void);
 static void __attribute__ ((destructor(101))) digiapix_fini(void);
@@ -407,10 +411,18 @@ digi_platform_t get_digi_platform()
 		platform = CC8MM_PLATFORM;
 	else if (strstr(cmd_output, CC8X_PLATFORM_STRING) != NULL)
 		platform = CC8X_PLATFORM;
+	else if (strstr(cmd_output, CC91_PLATFORM_STRING) != NULL)
+		platform = CC91_PLATFORM;
+	else if (strstr(cmd_output, CC93_PLATFORM_STRING) != NULL)
+		platform = CC93_PLATFORM;
+	else if (strstr(cmd_output, CC95_PLATFORM_STRING) != NULL)
+		platform = CC95_PLATFORM;
 	else if (strstr(cmd_output, CCMP15_PLATFORM_STRING) != NULL)
 		platform = CCMP15_PLATFORM;
 	else if (strstr(cmd_output, CCMP13_PLATFORM_STRING) != NULL)
 		platform = CCMP13_PLATFORM;
+	else if (strstr(cmd_output, CCMP25_PLATFORM_STRING) != NULL)
+		platform = CCMP25_PLATFORM;
 	else if (strstr(cmd_output, CC6_PLATFORM_STRING) != NULL ||
 			strstr(cmd_output, CC6DL_PLATFORM_STRING))
 		platform = CC6_PLATFORM;
